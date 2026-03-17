@@ -1,6 +1,4 @@
-# GraphStr
-GRAPHSTR is live.
-<!DOCTYPE html>
+
 
 <html lang="en">
 <head>
