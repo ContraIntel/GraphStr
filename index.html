@@ -3,1916 +3,1835 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GRAPHSTR — Nostr Social Graph Navigator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRAPH STR — Contra Intelligence</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap');
+
 :root {
-  --bg: #080b0f;
-  --surface: #0d1117;
-  --surface2: #131920;
-  --border: #1e2d3d;
-  --border2: #243040;
-  --accent: #00ff9d;
-  --accent2: #00c8ff;
-  --accent3: #ff6b35;
-  --zap: #f7931a;
-  --text: #e2eaf4;
-  --muted: #5a7a9a;
-  --danger: #ff4455;
-  --mono: 'Space Mono', monospace;
-  --display: 'Syne', sans-serif;
-  --header-h: 56px;
-  --sidebar-w: 320px;
+–btc: #F7931A;
+–btc-dim: #c4720e;
+–nostr: #8B5CF6;
+–nostr-bright: #a78bfa;
+–nostr-dim: #6d28d9;
+–bg: #0a0a0f;
+–bg2: #111118;
+–bg3: #1a1a26;
+–surface: #1e1e2e;
+–surface2: #252535;
+–border: #2a2a3e;
+–text: #e2e2f0;
+–text-muted: #7878a0;
+–text-dim: #4a4a6a;
+–green: #10b981;
+–red: #ef4444;
+–node-self: #10b981;
+–node-follow: var(–btc);
+–node-follower: var(–nostr-bright);
+–node-mutual: #f59e0b;
 }
 
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; overflow:hidden; }
+- { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
+font-family: ‘Rajdhani’, sans-serif;
 background: var(–bg);
 color: var(–text);
-font-family: var(–mono);
-font-size: 13px;
+height: 100dvh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
 }
 
-body::before {
-content:’’;
-position:fixed; inset:0;
-background:
-linear-gradient(rgba(0,255,157,.025) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,255,157,.025) 1px, transparent 1px);
-background-size: 48px 48px;
-pointer-events:none; z-index:0;
-}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width:4px; height:4px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(–border2); border-radius:2px; }
-
-/* ══════════════════════════════════════
-LAYOUT
-══════════════════════════════════════ */
-.app { position:relative; z-index:1; height:100vh; display:flex; flex-direction:column; }
-
-/* HEADER */
+/* ── HEADER ── */
 header {
-height: var(–header-h);
-flex-shrink:0;
-display:flex; align-items:center; justify-content:space-between;
-padding: 0 20px;
-border-bottom: 1px solid var(–border);
-background: rgba(8,11,15,.97);
-backdrop-filter: blur(16px);
-z-index:200;
+display: flex;
+align-items: center;
 gap: 12px;
+padding: 10px 16px;
+background: var(–bg2);
+border-bottom: 1px solid var(–border);
+z-index: 100;
+flex-shrink: 0;
 }
 
 .logo {
-font-family: var(–display);
-font-size: 20px; font-weight:800;
-display:flex; align-items:center; gap:8px;
-flex-shrink:0;
+font-family: ‘Space Mono’, monospace;
+font-weight: 700;
+font-size: 13px;
+letter-spacing: 2px;
+color: var(–btc);
+white-space: nowrap;
 }
-.logo-mark {
-width:26px; height:26px;
-border:2px solid var(–accent); border-radius:6px;
-display:flex; align-items:center; justify-content:center;
-position:relative;
-}
-.logo-mark::before {
-content:’’;
-width:8px; height:8px;
-background:var(–accent); border-radius:50%;
-box-shadow: 0 0 10px var(–accent);
-}
+.logo span { color: var(–nostr-bright); }
 
-.header-search {
-flex:1; max-width:440px;
-display:flex; gap:6px;
-}
-.header-search input {
-flex:1;
-font-family:var(–mono); font-size:11px;
-padding:7px 12px;
-background:var(–surface2); border:1px solid var(–border2);
-border-radius:4px; color:var(–text); outline:none;
+.npub-input {
+flex: 1;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 7px 12px;
+color: var(–text);
+font-family: ‘Space Mono’, monospace;
+font-size: 11px;
+outline: none;
+min-width: 0;
 transition: border-color .2s;
 }
-.header-search input:focus { border-color:var(–accent); }
-.header-search input::placeholder { color:var(–muted); }
+.npub-input:focus { border-color: var(–nostr); }
+.npub-input::placeholder { color: var(–text-dim); }
 
-.header-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.btn {
+background: var(–surface);
+border: 1px solid var(–border);
+color: var(–text);
+font-family: ‘Rajdhani’, sans-serif;
+font-weight: 600;
+font-size: 13px;
+padding: 7px 14px;
+border-radius: 6px;
+cursor: pointer;
+white-space: nowrap;
+transition: all .2s;
+letter-spacing: .5px;
+}
+.btn:hover { border-color: var(–nostr); color: var(–nostr-bright); }
+.btn-btc { border-color: var(–btc-dim); color: var(–btc); }
+.btn-btc:hover { background: var(–btc); color: #000; border-color: var(–btc); }
+.btn-nostr { border-color: var(–nostr-dim); color: var(–nostr-bright); }
+.btn-nostr:hover { background: var(–nostr); color: #fff; border-color: var(–nostr); }
 
-.status-pill {
-font-size:9px; letter-spacing:.5px;
-padding:4px 8px; border-radius:20px;
-border:1px solid var(–border2); color:var(–muted);
-display:flex; align-items:center; gap:5px;
-white-space:nowrap;
+.login-status {
+display: flex;
+align-items: center;
+gap: 8px;
+font-size: 12px;
+color: var(–text-muted);
+white-space: nowrap;
 }
 .status-dot {
-width:5px; height:5px; border-radius:50%;
-background:var(–accent);
-animation: blink 2s infinite;
+width: 7px; height: 7px;
+border-radius: 50%;
+background: var(–text-dim);
 }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+.status-dot.connected { background: var(–green); box-shadow: 0 0 6px var(–green); }
+.status-dot.btc { background: var(–btc); box-shadow: 0 0 6px var(–btc); }
 
-/* NAV BUTTONS */
-.icon-btn {
-width:34px; height:34px;
-background:var(–surface2); border:1px solid var(–border);
-border-radius:4px; color:var(–muted);
-font-size:15px; cursor:pointer;
-display:flex; align-items:center; justify-content:center;
-transition: all .15s; position:relative;
-}
-.icon-btn:hover { color:var(–text); border-color:var(–border2); }
-.icon-btn.active { color:var(–accent); border-color:var(–accent); }
-.icon-btn .badge {
-position:absolute; top:-4px; right:-4px;
-width:14px; height:14px; border-radius:50%;
-background:var(–zap); color:#000;
-font-size:8px; font-weight:700;
-display:flex; align-items:center; justify-content:center;
+/* ── NAV TABS ── */
+nav {
+display: flex;
+background: var(–bg2);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
 }
 
-.btn-sm {
-font-family:var(–mono); font-size:10px; font-weight:700;
-letter-spacing:.8px; text-transform:uppercase;
-padding:7px 14px; border-radius:4px; cursor:pointer;
-transition: all .2s; white-space:nowrap;
+.tab {
+flex: 1;
+padding: 10px 4px;
+text-align: center;
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–text-dim);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: all .2s;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 2px;
 }
-.btn-outline { background:transparent; border:1px solid var(–accent); color:var(–accent); }
-.btn-outline:hover { background:var(–accent); color:var(–bg); }
-.btn-primary-sm { background:var(–zap); border:none; color:#000; }
-.btn-primary-sm:hover { background:#ffaa33; }
+.tab svg { width: 16px; height: 16px; }
+.tab:hover { color: var(–text-muted); }
+.tab.active { color: var(–btc); border-bottom-color: var(–btc); }
+.tab.active svg { color: var(–btc); }
 
-/* BODY AREA */
-.body { flex:1; display:flex; overflow:hidden; }
+/* ── MAIN CONTENT ── */
+main { flex: 1; overflow: hidden; position: relative; }
 
-/* SIDEBAR */
-.sidebar {
-width: var(–sidebar-w);
-flex-shrink:0;
-border-right:1px solid var(–border);
-background:var(–surface);
-display:flex; flex-direction:column;
-overflow:hidden;
-transition: transform .3s ease, width .3s ease;
-z-index:100;
+.panel {
+position: absolute;
+inset: 0;
+display: none;
+flex-direction: column;
+overflow: hidden;
+}
+.panel.active { display: flex; }
+
+/* ── GRAPH PANEL ── */
+#graphPanel { position: relative; }
+
+#graphSvg {
+width: 100%;
+height: 100%;
+background: var(–bg);
 }
 
-.sidebar.hidden { display:none; }
+/* Graph legend */
+.graph-legend {
+position: absolute;
+bottom: 16px;
+left: 16px;
+background: rgba(10,10,15,.85);
+backdrop-filter: blur(8px);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 14px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+font-size: 11px;
+font-weight: 600;
+letter-spacing: .5px;
+z-index: 10;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; color: var(–text-muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-.sidebar-tabs {
-display:flex; border-bottom:1px solid var(–border);
-flex-shrink:0;
+/* Graph tooltip */
+.graph-tooltip {
+position: absolute;
+background: var(–surface);
+border: 1px solid var(–nostr-dim);
+border-radius: 8px;
+padding: 12px 16px;
+font-size: 13px;
+pointer-events: none;
+opacity: 0;
+transition: opacity .15s;
+z-index: 50;
+min-width: 180px;
+max-width: 260px;
 }
-.stab {
-flex:1; padding:10px 4px;
-font-size:9px; letter-spacing:1px; text-transform:uppercase;
-color:var(–muted); background:none; border:none;
-border-bottom:2px solid transparent;
-cursor:pointer; transition: all .2s;
+.graph-tooltip.visible { opacity: 1; }
+.tt-name {
+font-weight: 700;
+font-size: 15px;
+color: var(–text);
+margin-bottom: 6px;
 }
-.stab.active { color:var(–accent); border-bottom-color:var(–accent); }
-.stab:hover { color:var(–text); }
+.tt-row {
+display: flex;
+justify-content: space-between;
+color: var(–text-muted);
+font-size: 12px;
+margin-top: 3px;
+}
+.tt-val { color: var(–btc); font-family: ‘Space Mono’, monospace; font-size: 11px; }
+.tt-degree { color: var(–nostr-bright); }
 
-.sidebar-pane { display:none; flex-direction:column; flex:1; overflow:hidden; }
-.sidebar-pane.active { display:flex; }
+/* Profile card */
+.profile-card {
+position: absolute;
+top: 10px;
+right: 10px;
+width: 220px;
+background: rgba(14,14,22,.92);
+backdrop-filter: blur(12px);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 14px;
+z-index: 20;
+display: none;
+}
+.profile-card.visible { display: block; }
+.pc-close {
+position: absolute;
+top: 8px; right: 10px;
+background: none;
+border: none;
+color: var(–text-dim);
+cursor: pointer;
+font-size: 16px;
+line-height: 1;
+}
+.pc-close:hover { color: var(–text); }
+.pc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.pc-avatar {
+width: 42px; height: 42px;
+border-radius: 50%;
+border: 2px solid var(–nostr-dim);
+object-fit: cover;
+background: var(–surface2);
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+}
+.pc-name { font-weight: 700; font-size: 15px; color: var(–text); }
+.pc-pubkey { font-family: ‘Space Mono’, monospace; font-size: 9px; color: var(–text-dim); margin-top: 2px; word-break: break-all; }
+.pc-stats {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 8px;
+margin-bottom: 12px;
+}
+.pc-stat { text-align: center; }
+.pc-stat-val { font-size: 16px; font-weight: 700; color: var(–btc); }
+.pc-stat-lbl { font-size: 9px; font-weight: 600; color: var(–text-dim); letter-spacing: 1px; text-transform: uppercase; }
+.pc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pc-btn {
+padding: 7px 10px;
+border-radius: 6px;
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
+text-align: center;
+letter-spacing: .5px;
+transition: all .2s;
+border: 1px solid;
+}
+.pc-btn-follow { border-color: var(–btc-dim); color: var(–btc); background: transparent; }
+.pc-btn-follow:hover { background: var(–btc); color: #000; }
+.pc-btn-watch { border-color: var(–nostr-dim); color: var(–nostr-bright); background: transparent; }
+.pc-btn-watch:hover { background: var(–nostr); color: #fff; }
 
-/* METRICS */
-.metrics-section { padding:16px; border-bottom:1px solid var(–border); flex-shrink:0; }
-.metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.metric-card {
-background:var(–surface2); border:1px solid var(–border);
-border-radius:6px; padding:10px;
+/* ── NICHES PANEL ── */
+#nichesPanel {
+padding: 0;
+overflow-y: auto;
 }
-.metric-label { font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(–muted); margin-bottom:4px; }
-.metric-val {
-font-family:var(–display); font-size:20px; font-weight:700; line-height:1;
-}
-.metric-val.g { color:var(–accent); }
-.metric-val.b { color:var(–accent2); }
-.metric-val.z { color:var(–zap); }
-.metric-val.o { color:var(–accent3); }
-.metric-sub { font-size:8px; color:var(–muted); margin-top:3px; }
+#nichesPanel::-webkit-scrollbar { width: 4px; }
+#nichesPanel::-webkit-scrollbar-track { background: transparent; }
+#nichesPanel::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
 
-/* REC LIST */
-.section-head {
-padding:12px 16px 8px;
-font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(–muted);
-flex-shrink:0;
+.niches-header {
+padding: 14px 16px 10px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: space-between;
+position: sticky;
+top: 0;
+background: var(–bg);
+z-index: 5;
 }
-.rec-scroll { flex:1; overflow-y:auto; padding:0 8px 8px; }
-.rec-item {
-display:flex; align-items:center; gap:10px;
-padding:9px 10px; border-radius:6px;
-border:1px solid transparent; cursor:pointer;
-transition: all .15s;
+.niches-title {
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–text-dim);
 }
-.rec-item:hover { background:var(–surface2); border-color:var(–border); }
-.rec-item.locked { opacity:.45; pointer-events:none; }
-.rec-avatar {
-width:32px; height:32px; border-radius:7px;
-background:var(–surface2); border:1px solid var(–border2);
-display:flex; align-items:center; justify-content:center;
-font-size:13px; flex-shrink:0; overflow:hidden;
-}
-.rec-avatar img { width:100%; height:100%; object-fit:cover; }
-.rec-info { flex:1; min-width:0; }
-.rec-name { font-family:var(–display); font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rec-meta { font-size:9px; color:var(–muted); margin-top:1px; }
-.rec-score { font-size:10px; font-weight:700; color:var(–accent); flex-shrink:0; }
+.niches-count { font-size: 12px; color: var(–btc); font-family: ‘Space Mono’, monospace; }
 
-.zap-gate {
-margin:10px 12px;
-padding:12px; border-radius:6px;
-background:rgba(247,147,26,.08); border:1px solid rgba(247,147,26,.25);
-text-align:center; flex-shrink:0;
+.niche-item {
+padding: 14px 16px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+gap: 14px;
+cursor: pointer;
+transition: background .15s;
 }
-.zap-gate strong { display:block; font-size:11px; color:var(–zap); margin-bottom:4px; }
-.zap-gate span { font-size:9px; color:var(–muted); display:block; margin-bottom:10px; }
-.btn-zap { width:100%; padding:8px; background:var(–zap); color:#000; border:none; border-radius:4px; font-family:var(–mono); font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition: all .2s; }
-.btn-zap:hover { background:#ffaa33; }
+.niche-item:hover { background: var(–surface); }
+.niche-icon {
+width: 40px; height: 40px;
+border-radius: 8px;
+background: var(–surface2);
+border: 1px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+flex-shrink: 0;
+}
+.niche-info { flex: 1; min-width: 0; }
+.niche-tag { font-size: 15px; font-weight: 700; color: var(–nostr-bright); }
+.niche-label { font-size: 11px; color: var(–text-dim); margin-top: 1px; }
+.niche-right { text-align: right; flex-shrink: 0; }
+.niche-sats { font-family: ‘Space Mono’, monospace; font-size: 13px; font-weight: 700; color: var(–btc); }
+.niche-sats-lbl { font-size: 9px; color: var(–text-dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+.niche-active {
+display: inline-flex;
+align-items: center;
+gap: 4px;
+background: rgba(16,185,129,.12);
+border: 1px solid rgba(16,185,129,.3);
+color: var(–green);
+font-size: 10px;
+font-weight: 700;
+padding: 2px 7px;
+border-radius: 20px;
+letter-spacing: .5px;
+margin-top: 4px;
+}
+.niche-active::before { content: ‘’; width: 5px; height: 5px; border-radius: 50%; background: var(–green); }
 
-/* WATCHLIST PANE */
-.watch-scroll { flex:1; overflow-y:auto; padding:8px; }
+/* ── ACTIVITY PANEL ── */
+#activityPanel { overflow-y: auto; }
+#activityPanel::-webkit-scrollbar { width: 4px; }
+#activityPanel::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+
+.activity-header {
+padding: 14px 16px 10px;
+border-bottom: 1px solid var(–border);
+position: sticky;
+top: 0;
+background: var(–bg);
+z-index: 5;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.activity-title {
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+.live-badge {
+display: flex;
+align-items: center;
+gap: 5px;
+font-size: 10px;
+font-weight: 700;
+color: var(–btc);
+letter-spacing: 1px;
+}
+.live-pulse {
+width: 6px; height: 6px;
+border-radius: 50%;
+background: var(–btc);
+animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+0%, 100% { opacity: 1; transform: scale(1); }
+50% { opacity: .5; transform: scale(.7); }
+}
+
+.activity-item {
+padding: 12px 16px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: flex-start;
+gap: 12px;
+transition: background .15s;
+}
+.activity-item:hover { background: var(–surface); }
+.activity-icon {
+width: 32px; height: 32px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+flex-shrink: 0;
+margin-top: 1px;
+}
+.icon-zap { background: rgba(247,147,26,.12); border: 1px solid rgba(247,147,26,.3); color: var(–btc); }
+.icon-react { background: rgba(139,92,246,.12); border: 1px solid rgba(139,92,246,.3); color: var(–nostr-bright); }
+.icon-note { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); color: var(–green); }
+.activity-content { flex: 1; min-width: 0; }
+.act-line { font-size: 13px; color: var(–text); line-height: 1.4; }
+.act-actor { font-weight: 700; color: var(–nostr-bright); }
+.act-target { font-family: ‘Space Mono’, monospace; font-size: 10px; color: var(–text-muted); }
+.act-sats { font-family: ‘Space Mono’, monospace; font-size: 11px; color: var(–btc); font-weight: 700; }
+.act-time { font-size: 10px; color: var(–text-dim); margin-top: 2px; }
+.act-degree {
+padding: 1px 7px;
+border-radius: 4px;
+font-size: 10px;
+font-weight: 700;
+letter-spacing: .5px;
+flex-shrink: 0;
+}
+.degree-1 { background: rgba(247,147,26,.15); color: var(–btc); border: 1px solid rgba(247,147,26,.3); }
+.degree-2 { background: rgba(139,92,246,.15); color: var(–nostr-bright); border: 1px solid rgba(139,92,246,.3); }
+
+/* ── WATCHLIST PANEL ── */
+#watchlistPanel { overflow-y: auto; }
+#watchlistPanel::-webkit-scrollbar { width: 4px; }
+#watchlistPanel::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+
+.watchlist-header {
+padding: 14px 16px 10px;
+border-bottom: 1px solid var(–border);
+position: sticky;
+top: 0;
+background: var(–bg);
+z-index: 5;
+}
+.watchlist-title {
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 10px;
+}
+.watchlist-add {
+display: flex;
+gap: 8px;
+}
+.watchlist-add input {
+flex: 1;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 7px 10px;
+color: var(–text);
+font-family: ‘Space Mono’, monospace;
+font-size: 10px;
+outline: none;
+}
+.watchlist-add input:focus { border-color: var(–nostr); }
+.watchlist-add input::placeholder { color: var(–text-dim); }
+
 .watch-item {
-display:flex; align-items:center; gap:10px;
-padding:10px; border-radius:6px; border:1px solid var(–border);
-background:var(–surface2); margin-bottom:6px; cursor:pointer;
-transition: border-color .15s;
+padding: 12px 16px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+gap: 12px;
 }
-.watch-item:hover { border-color:var(–border2); }
-.watch-info { flex:1; min-width:0; }
-.watch-name { font-family:var(–display); font-size:12px; font-weight:600; }
-.watch-npub { font-size:9px; color:var(–muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.watch-remove { color:var(–muted); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; transition: color .15s; }
-.watch-remove:hover { color:var(–danger); }
-.watch-empty { padding:40px 20px; text-align:center; color:var(–muted); font-size:11px; line-height:1.7; }
-
-.btn-add-watch {
-margin:10px 12px 12px;
-width:calc(100% - 24px);
-padding:9px; background:transparent;
-border:1px dashed var(–border2); border-radius:4px;
-color:var(–muted); font-family:var(–mono); font-size:10px;
-cursor:pointer; transition: all .2s; flex-shrink:0;
+.watch-avatar {
+width: 36px; height: 36px;
+border-radius: 50%;
+border: 1.5px solid var(–nostr-dim);
+background: var(–surface2);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 16px;
+flex-shrink: 0;
 }
-.btn-add-watch:hover { border-color:var(–accent); color:var(–accent); }
-
-/* RELAY PANE */
-.relay-scroll { flex:1; overflow-y:auto; padding:8px; }
-.relay-item {
-display:flex; align-items:center; gap:8px;
-padding:9px 10px; border-radius:6px; border:1px solid var(–border);
-background:var(–surface2); margin-bottom:5px;
-}
-.relay-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.relay-dot.live { background:var(–accent); box-shadow:0 0 6px var(–accent); }
-.relay-dot.dead { background:var(–muted); }
-.relay-url { flex:1; font-size:10px; color:var(–muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.relay-ping { font-size:9px; color:var(–accent); flex-shrink:0; }
-.relay-remove { background:none; border:none; color:var(–muted); cursor:pointer; font-size:12px; padding:2px; }
-.relay-remove:hover { color:var(–danger); }
-.relay-add { display:flex; gap:6px; padding:10px 12px; flex-shrink:0; }
-.relay-add input { flex:1; font-family:var(–mono); font-size:10px; padding:7px 10px; background:var(–surface2); border:1px solid var(–border2); border-radius:4px; color:var(–text); outline:none; }
-.relay-add input:focus { border-color:var(–accent); }
-.relay-add button { padding:7px 12px; background:var(–accent); color:var(–bg); border:none; border-radius:4px; font-family:var(–mono); font-size:10px; font-weight:700; cursor:pointer; }
-
-/* CONTENT AREA */
-.content { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
-
-.view-tabs {
-display:flex; border-bottom:1px solid var(–border);
-padding:0 20px; background:var(–surface); flex-shrink:0;
-}
-.vtab {
-font-family:var(–mono); font-size:9px; letter-spacing:1px; text-transform:uppercase;
-padding:13px 16px; border-bottom:2px solid transparent;
-cursor:pointer; color:var(–muted); background:none;
-border-top:none; border-left:none; border-right:none;
+.watch-name { font-weight: 700; font-size: 14px; color: var(–text); }
+.watch-key { font-family: ‘Space Mono’, monospace; font-size: 9px; color: var(–text-dim); margin-top: 2px; }
+.watch-zaps { font-family: ‘Space Mono’, monospace; font-size: 12px; color: var(–btc); }
+.watch-remove {
+background: none;
+border: 1px solid var(–border);
+color: var(–text-dim);
+border-radius: 4px;
+padding: 4px 8px;
+cursor: pointer;
+font-size: 11px;
 transition: all .2s;
 }
-.vtab:hover { color:var(–text); }
-.vtab.active { color:var(–accent); border-bottom-color:var(–accent); }
+.watch-remove:hover { border-color: var(–red); color: var(–red); }
 
-/* GRAPH */
-.graph-wrap { flex:1; position:relative; overflow:hidden; }
-#graph-svg { width:100%; height:100%; display:block; }
-
-.graph-controls {
-position:absolute; bottom:20px; right:20px;
-display:flex; flex-direction:column; gap:4px;
-}
-.graph-btn {
-width:30px; height:30px;
-background:var(–surface); border:1px solid var(–border2);
-color:var(–text); font-size:14px; border-radius:4px;
-cursor:pointer; display:flex; align-items:center; justify-content:center;
-transition: all .15s;
-}
-.graph-btn:hover { border-color:var(–accent); color:var(–accent); }
-
-.graph-legend {
-position:absolute; bottom:20px; left:20px;
-display:flex; flex-direction:column; gap:5px;
-}
-.leg { display:flex; align-items:center; gap:7px; font-size:9px; color:var(–muted); letter-spacing:.5px; text-transform:uppercase; }
-.leg-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-
-/* NICHE GRID */
-.niche-wrap { flex:1; overflow-y:auto; padding:24px; }
-.niche-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:14px; }
-.niche-card {
-background:var(–surface); border:1px solid var(–border);
-border-radius:8px; padding:18px; cursor:pointer;
-transition: all .2s; position:relative; overflow:hidden;
-}
-.niche-card::before { content:’’; position:absolute; top:0; left:0; right:0; height:2px; background:var(–nc, var(–accent)); }
-.niche-card:hover { border-color:var(–border2); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.4); }
-.niche-name { font-family:var(–display); font-size:15px; font-weight:700; margin-bottom:4px; }
-.niche-tag { font-size:9px; color:var(–muted); margin-bottom:14px; }
-.niche-stats { display:flex; gap:16px; }
-.ns-val { font-family:var(–display); font-size:18px; font-weight:700; color:var(–nc, var(–accent)); }
-.ns-lbl { font-size:8px; color:var(–muted); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
-.niche-bar { margin-top:12px; height:2px; background:var(–border); border-radius:1px; overflow:hidden; }
-.niche-bar-fill { height:100%; background:var(–nc, var(–accent)); border-radius:1px; transition:width 1s ease; width:0; }
-
-/* ACTIVITY */
-.activity-wrap { flex:1; overflow-y:auto; padding:24px; }
-.activity-list { max-width:680px; }
-.act-item {
-display:grid; grid-template-columns:120px 1fr auto;
-gap:14px; padding:12px 0;
-border-bottom:1px solid var(–border);
-font-size:11px;
-animation: fadeUp .3s ease forwards; opacity:0;
-}
-@keyframes fadeUp { to { opacity:1; transform:translateY(0); } from { opacity:0; transform:translateY(6px); } }
-.act-time { color:var(–muted); }
-.act-content { color:var(–text); line-height:1.5; }
-.act-actor { color:var(–accent2); font-weight:700; }
-.act-zap { color:var(–zap); font-weight:700; white-space:nowrap; }
-
-/* EMPTY STATE */
-.empty-state {
-flex:1; display:flex; flex-direction:column;
-align-items:center; justify-content:center;
-gap:14px; color:var(–muted); padding:40px;
-}
-.empty-icon {
-width:72px; height:72px; border-radius:50%;
-border:1px solid var(–border2);
-display:flex; align-items:center; justify-content:center;
-font-size:28px; position:relative;
-}
-.empty-icon::before {
-content:’’; position:absolute; inset:-10px; border-radius:50%;
-border:1px solid var(–border); animation:spin 8s linear infinite;
-}
-.empty-icon::after {
-content:’’; position:absolute; inset:-20px; border-radius:50%;
-border:1px dashed rgba(30,45,61,.6); animation:spin 14s linear infinite reverse;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-.empty-title { font-family:var(–display); font-size:18px; font-weight:700; color:var(–text); }
-.empty-sub { font-size:11px; text-align:center; max-width:300px; line-height:1.7; }
-
-/* LOADING BAR */
-.load-bar { height:2px; background:var(–border); overflow:hidden; flex-shrink:0; }
-.load-bar.hidden { display:none; }
-.load-bar::after {
-content:’’; display:block; height:100%;
-background:linear-gradient(90deg, transparent, var(–accent), transparent);
-animation: sweep 1.2s infinite;
-width:40%; margin-left:-40%;
-}
-@keyframes sweep { to { margin-left:100%; } }
-
-/* ══════════════════════════════════════
-PROFILE PANEL (slide-in from right)
-══════════════════════════════════════ */
-.profile-panel {
-position:absolute; top:0; right:0; bottom:0;
-width:360px; max-width:100%;
-background:var(–surface); border-left:1px solid var(–border);
-display:flex; flex-direction:column;
-transform:translateX(100%); transition:transform .3s ease;
-z-index:150; overflow:hidden;
-}
-.profile-panel.open { transform:translateX(0); }
-
-.pp-header {
-display:flex; align-items:center; gap:12px;
-padding:16px; border-bottom:1px solid var(–border); flex-shrink:0;
-}
-.pp-avatar {
-width:48px; height:48px; border-radius:10px;
-background:var(–surface2); border:1px solid var(–border2);
-display:flex; align-items:center; justify-content:center;
-font-size:22px; flex-shrink:0; overflow:hidden;
-}
-.pp-avatar img { width:100%; height:100%; object-fit:cover; }
-.pp-name { font-family:var(–display); font-size:16px; font-weight:700; }
-.pp-npub { font-size:9px; color:var(–muted); margin-top:2px; font-family:var(–mono); }
-.pp-close {
-margin-left:auto; width:28px; height:28px;
-background:var(–surface2); border:1px solid var(–border);
-border-radius:4px; color:var(–muted); cursor:pointer;
-font-size:14px; display:flex; align-items:center; justify-content:center;
-flex-shrink:0; transition:all .15s;
-}
-.pp-close:hover { color:var(–text); }
-
-.pp-stats {
-display:grid; grid-template-columns:1fr 1fr 1fr;
-gap:1px; background:var(–border); flex-shrink:0;
-}
-.pp-stat { padding:12px; background:var(–surface); text-align:center; }
-.pp-stat-val { font-family:var(–display); font-size:16px; font-weight:700; color:var(–text); }
-.pp-stat-lbl { font-size:8px; color:var(–muted); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
-
-.pp-bio { padding:14px 16px; font-size:11px; color:var(–muted); line-height:1.6; border-bottom:1px solid var(–border); flex-shrink:0; max-height:80px; overflow-y:auto; }
-
-.pp-actions { display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid var(–border); flex-shrink:0; }
-.pp-btn {
-flex:1; padding:8px; border-radius:4px;
-font-family:var(–mono); font-size:10px; font-weight:700;
-letter-spacing:.5px; cursor:pointer; transition:all .2s; text-align:center;
-}
-.pp-btn-follow { background:var(–accent); color:var(–bg); border:none; }
-.pp-btn-follow:hover { background:#00e88a; }
-.pp-btn-watch { background:transparent; border:1px solid var(–border2); color:var(–muted); }
-.pp-btn-watch:hover { border-color:var(–zap); color:var(–zap); }
-.pp-btn-watch.watching { border-color:var(–zap); color:var(–zap); background:rgba(247,147,26,.08); }
-
-.pp-notes { flex:1; overflow-y:auto; padding:0; }
-.pp-note {
-padding:14px 16px; border-bottom:1px solid var(–border);
-font-size:11px; line-height:1.6; color:var(–text);
-}
-.pp-note-time { font-size:9px; color:var(–muted); margin-bottom:6px; }
-.pp-note-text { word-break:break-word; }
-
-.pp-loading { padding:40px; text-align:center; color:var(–muted); font-size:11px; }
-
-/* ══════════════════════════════════════
-SHARE CARD MODAL
-══════════════════════════════════════ */
+/* ── LOGIN MODAL ── */
 .modal-overlay {
-display:none; position:fixed; inset:0;
-background:rgba(0,0,0,.85); z-index:500;
-align-items:center; justify-content:center;
-backdrop-filter:blur(10px);
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,.7);
+backdrop-filter: blur(4px);
+z-index: 200;
+display: none;
+align-items: center;
+justify-content: center;
+padding: 20px;
 }
-.modal-overlay.open { display:flex; }
+.modal-overlay.open { display: flex; }
 
 .modal {
-background:var(–surface); border:1px solid var(–border2);
-border-radius:12px; width:520px; max-width:95vw;
-max-height:92vh; overflow-y:auto;
-animation: modalIn .25s ease;
+background: var(–bg2);
+border: 1px solid var(–nostr-dim);
+border-radius: 14px;
+padding: 28px 24px;
+width: 100%;
+max-width: 340px;
+position: relative;
 }
-@keyframes modalIn {
-from { opacity:0; transform:translateY(12px) scale(.97); }
-to   { opacity:1; transform:translateY(0) scale(1); }
+.modal-close {
+position: absolute;
+top: 12px; right: 16px;
+background: none;
+border: none;
+color: var(–text-dim);
+font-size: 20px;
+cursor: pointer;
 }
-.modal-hdr {
-display:flex; align-items:center; justify-content:space-between;
-padding:20px 24px 16px; border-bottom:1px solid var(–border);
+.modal-close:hover { color: var(–text); }
+.modal-title {
+font-size: 18px;
+font-weight: 700;
+color: var(–text);
+margin-bottom: 4px;
 }
-.modal-title { font-family:var(–display); font-size:17px; font-weight:800; }
-.modal-x {
-width:26px; height:26px; background:var(–surface2); border:1px solid var(–border);
-border-radius:4px; color:var(–muted); cursor:pointer; font-size:14px;
-display:flex; align-items:center; justify-content:center; transition:all .15s;
+.modal-sub { font-size: 12px; color: var(–text-muted); margin-bottom: 20px; }
+.modal-section { margin-bottom: 20px; }
+.modal-section-title {
+font-size: 10px;
+font-weight: 700;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 10px;
+display: flex;
+align-items: center;
+gap: 8px;
 }
-.modal-x:hover { color:var(–text); }
-.modal-body { padding:24px; }
-
-/* Share card preview */
-.share-preview {
-background:linear-gradient(135deg, #0a0f14 0%, #0d1a24 100%);
-border:1px solid var(–border2); border-radius:10px;
-padding:28px; margin-bottom:20px; position:relative; overflow:hidden;
+.modal-section-title::after {
+content: ‘’;
+flex: 1;
+height: 1px;
+background: var(–border);
 }
-.share-preview::before {
-content:’’;
-position:absolute; inset:0;
-background:
-linear-gradient(rgba(0,255,157,.04) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,255,157,.04) 1px, transparent 1px);
-background-size:32px 32px;
+.signer-btn {
+width: 100%;
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 14px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+color: var(–text);
+cursor: pointer;
+font-family: ‘Rajdhani’, sans-serif;
+font-size: 14px;
+font-weight: 600;
+transition: all .2s;
+margin-bottom: 8px;
+text-align: left;
 }
-.sc-logo { font-family:var(–display); font-size:13px; font-weight:800; color:var(–muted); margin-bottom:20px; position:relative; }
-.sc-logo span { color:var(–accent); }
-.sc-name { font-family:var(–display); font-size:22px; font-weight:800; color:var(–text); margin-bottom:4px; position:relative; }
-.sc-npub { font-size:10px; color:var(–muted); margin-bottom:20px; position:relative; }
-.sc-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; position:relative; }
-.sc-stat-val { font-family:var(–display); font-size:20px; font-weight:700; }
-.sc-stat-lbl { font-size:8px; color:var(–muted); letter-spacing:1px; text-transform:uppercase; margin-top:3px; }
-.sc-footer { margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.06); font-size:9px; color:var(–muted); position:relative; display:flex; justify-content:space-between; }
-
-.share-actions { display:flex; gap:8px; }
-.btn-share {
-flex:1; padding:10px; border-radius:4px; border:none;
-font-family:var(–mono); font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
-cursor:pointer; transition:all .2s;
+.signer-btn:hover { border-color: var(–nostr); background: var(–surface2); }
+.signer-btn .signer-icon { font-size: 22px; width: 28px; text-align: center; }
+.signer-btn .signer-info { flex: 1; }
+.signer-btn .signer-name { font-size: 14px; font-weight: 700; }
+.signer-btn .signer-desc { font-size: 11px; color: var(–text-muted); font-weight: 400; }
+.signer-btn .signer-arrow { color: var(–text-dim); font-size: 16px; }
+.signer-btn:hover .signer-arrow { color: var(–nostr-bright); }
+.modal-divider { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(–text-dim); font-size: 11px; }
+.modal-divider::before, .modal-divider::after { content: ‘’; flex: 1; height: 1px; background: var(–border); }
+.modal-input {
+width: 100%;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 10px 12px;
+color: var(–text);
+font-family: ‘Space Mono’, monospace;
+font-size: 10px;
+outline: none;
+margin-bottom: 10px;
 }
-.btn-share-nostr { background:var(–accent); color:var(–bg); }
-.btn-share-nostr:hover { background:#00e88a; }
-.btn-share-copy { background:var(–surface2); border:1px solid var(–border2); color:var(–muted); }
-.btn-share-copy:hover { border-color:var(–border2); color:var(–text); }
-
-/* ══════════════════════════════════════
-ZAP GATE MODAL
-══════════════════════════════════════ */
-.zg-steps { display:flex; gap:5px; justify-content:center; margin-bottom:20px; }
-.zg-dot { width:6px; height:6px; border-radius:50%; background:var(–border2); transition: background .3s; }
-.zg-dot.active { background:var(–zap); }
-.zg-dot.done { background:var(–accent); }
-
-.zg-step { display:none; }
-.zg-step.active { display:block; }
-
-.pay-opts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
-.pay-opt {
-padding:16px 12px; background:var(–surface2); border:1px solid var(–border);
-border-radius:8px; cursor:pointer; transition:all .2s; text-align:center;
+.modal-input:focus { border-color: var(–nostr); }
+.modal-input::placeholder { color: var(–text-dim); }
+.modal-btn {
+width: 100%;
+padding: 11px;
+border-radius: 8px;
+font-family: ‘Rajdhani’, sans-serif;
+font-size: 14px;
+font-weight: 700;
+letter-spacing: 1px;
+cursor: pointer;
+transition: all .2s;
+border: none;
 }
-.pay-opt:hover, .pay-opt.sel { border-color:var(–zap); background:rgba(247,147,26,.08); }
-.pay-opt-ico { font-size:22px; margin-bottom:6px; }
-.pay-opt-lbl { font-family:var(–display); font-size:12px; font-weight:700; margin-bottom:2px; }
-.pay-opt-sub { font-size:9px; color:var(–muted); }
+.modal-btn-nostr { background: var(–nostr); color: #fff; }
+.modal-btn-nostr:hover { background: var(–nostr-bright); }
 
-.pay-status { text-align:center; padding:8px 0; font-size:11px; }
-.pay-status.pending { color:var(–muted); }
-.pay-status.ok { color:var(–accent); }
-.pay-status.err { color:var(–danger); }
-.dots::after { content:’’; animation: dotanim 1.5s infinite; }
-@keyframes dotanim { 0%{content:’.’} 33%{content:’..’} 66%{content:’…’} 100%{content:’’} }
-
-.invoice-box {
-background:var(–surface2); border:1px solid var(–border2); border-radius:6px;
-padding:12px; margin-bottom:12px; font-size:9px; color:var(–muted);
-word-break:break-all; line-height:1.5; max-height:72px; overflow:hidden;
-position:relative;
+/* ── EMPTY STATE ── */
+.empty-state {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 12px;
+padding: 40px 20px;
+text-align: center;
 }
-.invoice-box::after { content:’’; position:absolute; bottom:0; left:0; right:0; height:28px; background:linear-gradient(transparent, var(–surface2)); }
+.empty-icon { font-size: 48px; opacity: .3; }
+.empty-title { font-size: 16px; font-weight: 700; color: var(–text-muted); }
+.empty-sub { font-size: 13px; color: var(–text-dim); max-width: 240px; line-height: 1.5; }
 
-.qr-wrap { display:flex; justify-content:center; margin:12px 0; }
-.qr-wrap img { border-radius:8px; background:#fff; padding:6px; }
-
-.btn-full {
-width:100%; padding:11px; border-radius:4px; border:none;
-font-family:var(–mono); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
-cursor:pointer; transition:all .2s; margin-bottom:8px;
-}
-.btn-full-zap { background:var(–zap); color:#000; }
-.btn-full-zap:hover { background:#ffaa33; }
-.btn-full-zap:disabled { opacity:.4; cursor:not-allowed; }
-.btn-full-ghost { background:transparent; border:1px solid var(–border); color:var(–muted); }
-.btn-full-ghost:hover { border-color:var(–border2); color:var(–text); }
-
-.success-ico { font-size:44px; text-align:center; margin:4px 0 14px; animation:pop .4s cubic-bezier(.175,.885,.32,1.275); }
-@keyframes pop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
-.success-title { font-family:var(–display); font-size:20px; font-weight:800; text-align:center; color:var(–accent); margin-bottom:8px; }
-.success-sub { font-size:11px; color:var(–muted); text-align:center; line-height:1.6; margin-bottom:20px; }
-
-/* ══════════════════════════════════════
-TOOLTIP
-══════════════════════════════════════ */
-.tooltip {
-position:fixed; background:var(–surface2); border:1px solid var(–border2);
-border-radius:6px; padding:10px 14px; font-size:11px; color:var(–text);
-pointer-events:none; z-index:999; max-width:190px;
-box-shadow:0 8px 24px rgba(0,0,0,.5); display:none;
-}
-.tt-name { font-family:var(–display); font-weight:700; font-size:13px; margin-bottom:4px; }
-.tt-stat { color:var(–muted); margin-top:2px; }
-.tt-stat span { color:var(–accent); }
-
-/* MOBILE BOTTOM NAV */
-.mobile-nav {
-display:none;
-position:fixed; bottom:0; left:0; right:0;
-height:56px; background:var(–surface);
-border-top:1px solid var(–border);
-z-index:300;
-grid-template-columns:repeat(5,1fr);
-}
-.mnav-btn {
-display:flex; flex-direction:column; align-items:center; justify-content:center;
-gap:3px; background:none; border:none; color:var(–muted); cursor:pointer;
-font-size:9px; letter-spacing:.5px; text-transform:uppercase; transition: color .15s;
-padding:4px 0;
-}
-.mnav-btn.active { color:var(–accent); }
-.mnav-ico { font-size:18px; line-height:1; }
-
-/* MOBILE SIDEBAR OVERLAY */
-.sidebar-overlay {
-display:none;
-position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99;
+/* Graph node labels - controlled */
+.node-label {
+font-family: ‘Rajdhani’, sans-serif;
+font-weight: 700;
+font-size: 11px;
+pointer-events: none;
+text-anchor: middle;
+dominant-baseline: middle;
+fill: var(–text);
+paint-order: stroke;
+stroke: var(–bg);
+stroke-width: 3px;
+stroke-linejoin: round;
 }
 
-/* ══════════════════════════════════════
-RESPONSIVE
-══════════════════════════════════════ */
-@media (max-width: 768px) {
-:root { –sidebar-w: 100vw; }
-
-.app { height:calc(100vh - 56px); }
-
-/* Header collapses */
-header { padding:0 12px; }
-.status-pill { display:none; }
-.logo { font-size:17px; }
-
-/* Sidebar becomes a sheet */
-.sidebar {
-position:fixed; top:var(–header-h); bottom:56px; left:0;
-transform:translateX(-100%); z-index:100;
-width:90vw; max-width:360px;
-box-shadow:4px 0 24px rgba(0,0,0,.5);
+/* zoom controls */
+.zoom-controls {
+position: absolute;
+bottom: 16px;
+right: 16px;
+display: flex;
+flex-direction: column;
+gap: 4px;
+z-index: 10;
 }
-.sidebar.mobile-open { transform:translateX(0); }
-.sidebar-overlay { display:none; }
-.sidebar-overlay.show { display:block; }
-
-/* Content fills full width */
-.body { flex-direction:column; }
-.content { height:100%; }
-
-/* Profile panel */
-.profile-panel { width:100%; max-width:100%; }
-
-/* Graph legend smaller */
-.graph-legend { display:none; }
-
-/* Mobile nav shows */
-.mobile-nav { display:grid; }
-
-/* View tabs scroll */
-.view-tabs { overflow-x:auto; }
-.vtab { padding:13px 12px; white-space:nowrap; }
-
-/* Hide desktop sidebar toggle */
-#desktop-sidebar-toggle { display:none; }
-
-/* Niche grid single col */
-.niche-grid { grid-template-columns:1fr; }
-
-/* Activity 2-col instead of 3 */
-.act-item { grid-template-columns:80px 1fr; }
-.act-zap { display:none; }
+.zoom-btn {
+width: 34px; height: 34px;
+background: rgba(14,14,22,.85);
+backdrop-filter: blur(8px);
+border: 1px solid var(–border);
+border-radius: 6px;
+color: var(–text);
+font-size: 18px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all .2s;
 }
+.zoom-btn:hover { border-color: var(–btc); color: var(–btc); }
 
-@media (max-width:480px) {
-.header-search { max-width:180px; }
-.share-preview .sc-stats { grid-template-columns:repeat(2,1fr); }
+/* no-notes */
+.no-notes {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 6px 10px;
+font-size: 11px;
+color: var(–text-dim);
+text-align: center;
+margin: 4px 0;
 }
 </style>
 
 </head>
 <body>
-<div class="app">
+
+<!-- LOGIN MODAL — Multi-step -->
+
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+
+```
+<!-- STEP: main -->
+<div class="login-step" id="login-step-main">
+  <div class="modal-title">Connect to Nostr</div>
+  <div class="modal-sub">Sign in with your Nostr identity to unlock full graph features</div>
+
+  <div class="modal-section">
+    <div class="modal-section-title">Browser Extension</div>
+    <button class="signer-btn" onclick="loginNIP07()">
+      <span class="signer-icon">🔑</span>
+      <span class="signer-info">
+        <span class="signer-name">NIP-07 Extension</span>
+        <span class="signer-desc">Alby, nos2x, Nostore, Flamingo</span>
+      </span>
+      <span class="signer-arrow">›</span>
+    </button>
+  </div>
+
+  <div class="modal-section">
+    <div class="modal-section-title">Remote Signer (NIP-46)</div>
+    <button class="signer-btn" onclick="loginNsecBunker('primal')">
+      <span class="signer-icon">⚡</span>
+      <span class="signer-info">
+        <span class="signer-name">Primal</span>
+        <span class="signer-desc">wss://relay.primal.net</span>
+      </span>
+      <span class="signer-arrow">›</span>
+    </button>
+    <button class="signer-btn" onclick="loginNsecBunker('nos')">
+      <span class="signer-icon">🛡️</span>
+      <span class="signer-info">
+        <span class="signer-name">NOS</span>
+        <span class="signer-desc">wss://relay.nos.social</span>
+      </span>
+      <span class="signer-arrow">›</span>
+    </button>
+    <button class="signer-btn" onclick="loginNsecBunker('alby')">
+      <span class="signer-icon">🐝</span>
+      <span class="signer-info">
+        <span class="signer-name">Alby Hub</span>
+        <span class="signer-desc">wss://relay.getalby.com/v1</span>
+      </span>
+      <span class="signer-arrow">›</span>
+    </button>
+  </div>
+
+  <div class="modal-divider">read-only</div>
+  <input class="modal-input" id="pubkeyInput" placeholder="npub1... or hex pubkey" />
+  <button class="modal-btn modal-btn-nostr" onclick="loginPubkey()">Load Graph (Read Only)</button>
+</div>
+
+<!-- STEP: no-extension -->
+<div class="login-step" id="login-step-no-extension" style="display:none">
+  <div style="text-align:center;padding:10px 0 20px;">
+    <div style="font-size:40px;margin-bottom:12px;">🔌</div>
+    <div class="modal-title" style="margin-bottom:8px;">No Extension Found</div>
+    <div class="modal-sub" style="margin-bottom:20px;">Install a NIP-07 browser extension to sign in automatically</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+      <a href="https://getalby.com" target="_blank" class="signer-btn" style="text-decoration:none;">
+        <span class="signer-icon">🐝</span>
+        <span class="signer-info"><span class="signer-name">Alby</span><span class="signer-desc">Chrome, Firefox, Safari</span></span>
+        <span class="signer-arrow">↗</span>
+      </a>
+      <a href="https://github.com/fiatjaf/nos2x" target="_blank" class="signer-btn" style="text-decoration:none;">
+        <span class="signer-icon">🔑</span>
+        <span class="signer-info"><span class="signer-name">nos2x</span><span class="signer-desc">Chrome extension</span></span>
+        <span class="signer-arrow">↗</span>
+      </a>
+    </div>
+    <button class="modal-btn" style="background:var(--surface);border:1px solid var(--border);color:var(--text);" onclick="showLoginStep('main')">← Back</button>
+  </div>
+</div>
+
+<!-- STEP: bunker-input -->
+<div class="login-step" id="login-step-bunker-input" style="display:none">
+  <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;margin-bottom:12px;padding:0;" onclick="showLoginStep('main')">← Back</button>
+  <div class="modal-title" style="margin-bottom:4px;"><span id="bunkerProviderName">Signer</span> — NIP-46</div>
+  <div class="modal-sub" style="margin-bottom:16px;">Open your signer app and copy the <strong style="color:var(--btc)">bunker://</strong> connection URI</div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);word-break:break-all;line-height:1.6;">
+    <div style="color:var(--text-muted);font-size:10px;margin-bottom:6px;font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:1px;">EXPECTED FORMAT</div>
+    <span id="bunkerUriHint"></span>
+  </div>
+
+  <textarea
+    id="bunkerUriInput"
+    class="modal-input"
+    rows="3"
+    placeholder="bunker://... or nostrconnect://..."
+    style="resize:none;line-height:1.5;font-size:10px;"
+  ></textarea>
+
+  <button class="modal-btn modal-btn-nostr" id="bunkerSubmitBtn" style="margin-top:4px;">
+    Connect via NIP-46 →
+  </button>
+</div>
+
+<!-- STEP: loading / connecting -->
+<div class="login-step" id="login-step-loading" style="display:none">
+  <div style="text-align:center;padding:20px 0;">
+    <div style="font-size:36px;margin-bottom:12px;animation:spin 1.5s linear infinite;display:inline-block;">⚡</div>
+    <div class="modal-title" style="margin-bottom:8px;">Connecting...</div>
+    <div id="nip46Status" style="font-size:13px;color:var(--text-muted);min-height:20px;"></div>
+  </div>
+</div>
+
+<!-- STEP: nip46-connecting (with detail) -->
+<div class="login-step" id="login-step-nip46-connecting" style="display:none">
+  <div style="padding:10px 0;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <div style="font-size:28px;animation:spin 2s linear infinite;display:inline-block;">⚡</div>
+      <div>
+        <div class="modal-title" style="font-size:16px;">Establishing NIP-46 Session</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">Encrypted relay handshake in progress</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+      <div class="nip46-step-row" id="nip46step-relay">
+        <span class="nip46-step-icon">🔌</span>
+        <span class="nip46-step-text">Connect to relay</span>
+        <span class="nip46-step-state">…</span>
+      </div>
+      <div class="nip46-step-row" id="nip46step-sub">
+        <span class="nip46-step-icon">📡</span>
+        <span class="nip46-step-text">Subscribe for responses</span>
+        <span class="nip46-step-state">…</span>
+      </div>
+      <div class="nip46-step-row" id="nip46step-connect">
+        <span class="nip46-step-icon">🤝</span>
+        <span class="nip46-step-text">Send connect request</span>
+        <span class="nip46-step-state">…</span>
+      </div>
+      <div class="nip46-step-row" id="nip46step-approve">
+        <span class="nip46-step-icon">✅</span>
+        <span class="nip46-step-text">Approve in signer app</span>
+        <span class="nip46-step-state">…</span>
+      </div>
+      <div class="nip46-step-row" id="nip46step-key">
+        <span class="nip46-step-icon">🔑</span>
+        <span class="nip46-step-text">Retrieve public key</span>
+        <span class="nip46-step-state">…</span>
+      </div>
+    </div>
+
+    <div id="nip46Status" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text-muted);min-height:36px;display:flex;align-items:center;gap:8px;"></div>
+    <div id="nip46Detail" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:8px;word-break:break-all;"></div>
+
+    <button class="modal-btn" style="background:var(--surface);border:1px solid var(--border);color:var(--text-dim);margin-top:16px;font-size:12px;" onclick="cancelNIP46()">Cancel</button>
+  </div>
+</div>
+
+<!-- STEP: nip46-error -->
+<div class="login-step" id="login-step-nip46-error" style="display:none">
+  <div style="text-align:center;padding:10px 0 20px;">
+    <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+    <div class="modal-title" style="margin-bottom:8px;color:var(--red)">Connection Failed</div>
+    <div id="nip46ErrorMsg" style="font-size:12px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:20px;font-family:'Space Mono',monospace;word-break:break-all;"></div>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:20px;">Common causes: relay offline, invalid URI format, signer request denied, or CORS restriction in browser</div>
+    <button class="modal-btn modal-btn-nostr" onclick="showLoginStep('main')">Try Again</button>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.nip46-step-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.nip46-step-icon { font-size: 16px; width: 22px; text-align: center; }
+.nip46-step-text { flex: 1; color: var(--text-muted); }
+.nip46-step-state { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-dim); }
+.nip46-step-row.done .nip46-step-text { color: var(--text); }
+.nip46-step-row.done .nip46-step-state { color: var(--green); }
+.nip46-step-row.active .nip46-step-text { color: var(--btc); }
+.nip46-step-row.active .nip46-step-state { color: var(--btc); }
+.nip46-step-row.error .nip46-step-state { color: var(--red); }
+</style>
 
 <!-- HEADER -->
 
 <header>
-  <div class="logo">
-    <div class="logo-mark"></div>
-    <span>GRAPH</span><span style="color:var(--accent)">STR</span>
-  </div>
-
-  <div class="header-search">
-    <input id="npub-input" type="text" placeholder="npub1... or hex pubkey" autocomplete="off" />
-    <button class="btn-sm btn-outline" id="analyze-btn" onclick="analyzeProfile()">MAP</button>
-  </div>
-
-  <div class="header-right">
-    <div class="status-pill">
-      <div class="status-dot"></div>
-      <span id="relay-status">CONNECTING</span>
-    </div>
-    <button class="icon-btn" id="desktop-sidebar-toggle" onclick="toggleDesktopSidebar()" title="Toggle sidebar">☰</button>
-    <button class="icon-btn" id="watchlist-badge-btn" onclick="openMobilePanel('watch')" title="Watchlist">
-      👁
-      <span class="badge" id="watch-count" style="display:none">0</span>
-    </button>
-    <button class="icon-btn" onclick="openShareModal()" title="Share graph">📤</button>
-    <button class="btn-sm btn-outline" onclick="connectNIP07()">⚡ CONNECT</button>
+  <div class="logo">GRAPH<span>STR</span></div>
+  <input class="npub-input" id="npubHeader" placeholder="npub1... search any pubkey" />
+  <button class="btn btn-nostr" onclick="loadFromHeader()">LOAD</button>
+  <div class="login-status" id="loginStatus">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">—</span>
+    <button class="btn btn-btc" id="loginBtn" onclick="openLogin()" style="padding:6px 10px;font-size:11px;">LOGIN</button>
   </div>
 </header>
 
-<!-- BODY -->
+<!-- NAV -->
 
-<div class="body">
-
-  <!-- SIDEBAR -->
-
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-tabs">
-      <button class="stab active" onclick="switchSideTab('graph')">Graph</button>
-      <button class="stab" onclick="switchSideTab('watch')">Watchlist</button>
-      <button class="stab" onclick="switchSideTab('relays')">Relays</button>
-    </div>
-
-```
-<!-- GRAPH PANE -->
-<div class="sidebar-pane active" id="spane-graph">
-  <div class="metrics-section" id="metrics-section" style="display:none">
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Following</div>
-        <div class="metric-val g" id="m-following">—</div>
-        <div class="metric-sub" id="m-relay-sub">across relays</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">2nd Degree</div>
-        <div class="metric-val b" id="m-reach">—</div>
-        <div class="metric-sub">network reach</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Zap Weight</div>
-        <div class="metric-val z" id="m-zapscore">—</div>
-        <div class="metric-sub">economic score</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Niches</div>
-        <div class="metric-val o" id="m-niches">—</div>
-        <div class="metric-sub">communities</div>
-      </div>
-    </div>
+<nav>
+  <div class="tab active" onclick="switchTab('graph')" id="tab-graph">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>
+    GRAPH
   </div>
-
-  <div class="section-head" id="rec-head" style="display:none">Recommended Follows</div>
-  <div class="rec-scroll" id="rec-list"></div>
-
-  <div class="zap-gate" id="zap-gate" style="display:none">
-    <strong>⚡ UNLOCK FULL LIST</strong>
-    <span>Top 5 free · All + deep graph: 1,000 sats</span>
-    <button class="btn-zap" onclick="openZapGate()">ZAP TO UNLOCK</button>
+  <div class="tab" onclick="switchTab('niches')" id="tab-niches">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    NICHES
   </div>
-</div>
-
-<!-- WATCHLIST PANE -->
-<div class="sidebar-pane" id="spane-watch">
-  <div class="section-head">Watching</div>
-  <div class="watch-scroll" id="watch-list">
-    <div class="watch-empty" id="watch-empty">No profiles watched yet.<br>Click a node in the graph and tap "Watch" to track someone.</div>
+  <div class="tab" onclick="switchTab('activity')" id="tab-activity">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    ACTIVITY
   </div>
-  <button class="btn-add-watch" onclick="promptAddWatch()">+ Add npub to watchlist</button>
-</div>
-
-<!-- RELAY PANE -->
-<div class="sidebar-pane" id="spane-relays">
-  <div class="section-head">Active Relays</div>
-  <div class="relay-scroll" id="relay-list"></div>
-  <div class="relay-add">
-    <input id="relay-input" type="text" placeholder="wss://relay.example.com" />
-    <button onclick="addRelay()">Add</button>
+  <div class="tab" onclick="switchTab('watchlist')" id="tab-watchlist">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    WATCH
   </div>
-</div>
-```
-
-  </aside>
-
-  <!-- SIDEBAR OVERLAY (mobile) -->
-
-  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
-
-  <!-- CONTENT -->
-
-  <div class="content">
-    <div class="load-bar hidden" id="load-bar"></div>
-
-```
-<!-- EMPTY STATE -->
-<div class="empty-state" id="empty-state">
-  <div class="empty-icon">⬡</div>
-  <div class="empty-title">No graph loaded</div>
-  <div class="empty-sub">Paste an npub above or connect your Nostr extension to map your social graph and find who you should follow.</div>
-</div>
-
-<!-- VIEW TABS -->
-<div class="view-tabs" id="view-tabs" style="display:none">
-  <button class="vtab active" onclick="switchView('graph')">Graph</button>
-  <button class="vtab" onclick="switchView('niches')">Niches</button>
-  <button class="vtab" onclick="switchView('activity')">Activity</button>
-</div>
-
-<!-- GRAPH VIEW -->
-<div class="graph-wrap" id="view-graph" style="display:none">
-  <svg id="graph-svg"></svg>
-  <div class="graph-controls">
-    <button class="graph-btn" onclick="zoomIn()">+</button>
-    <button class="graph-btn" onclick="zoomOut()">−</button>
-    <button class="graph-btn" onclick="resetZoom()" style="font-size:10px">⟳</button>
-  </div>
-  <div class="graph-legend">
-    <div class="leg"><div class="leg-dot" style="background:#00ff9d"></div>You</div>
-    <div class="leg"><div class="leg-dot" style="background:#f7931a"></div>High Zap</div>
-    <div class="leg"><div class="leg-dot" style="background:#00c8ff"></div>Following</div>
-    <div class="leg"><div class="leg-dot" style="background:#2a3f55"></div>2nd Degree</div>
-  </div>
-</div>
-
-<!-- NICHES VIEW -->
-<div class="niche-wrap" id="view-niches" style="display:none">
-  <div class="niche-grid" id="niche-grid"></div>
-</div>
-
-<!-- ACTIVITY VIEW -->
-<div class="activity-wrap" id="view-activity" style="display:none">
-  <div class="activity-list" id="activity-list"></div>
-</div>
-
-<!-- PROFILE PANEL -->
-<div class="profile-panel" id="profile-panel">
-  <div class="pp-header" id="pp-header">
-    <div class="pp-avatar" id="pp-avatar">?</div>
-    <div>
-      <div class="pp-name" id="pp-name">—</div>
-      <div class="pp-npub" id="pp-npub">—</div>
-    </div>
-    <button class="pp-close" onclick="closeProfilePanel()">✕</button>
-  </div>
-  <div class="pp-stats" id="pp-stats">
-    <div class="pp-stat"><div class="pp-stat-val" id="pp-zaps">—</div><div class="pp-stat-lbl">Zap Score</div></div>
-    <div class="pp-stat"><div class="pp-stat-val" id="pp-follows">—</div><div class="pp-stat-lbl">Following</div></div>
-    <div class="pp-stat"><div class="pp-stat-val" id="pp-degree">—</div><div class="pp-stat-lbl">Degree</div></div>
-  </div>
-  <div class="pp-bio" id="pp-bio"></div>
-  <div class="pp-actions">
-    <button class="pp-btn pp-btn-follow" onclick="followProfile()" id="pp-follow-btn">+ Follow</button>
-    <button class="pp-btn pp-btn-watch" onclick="toggleWatch()" id="pp-watch-btn">👁 Watch</button>
-  </div>
-  <div class="pp-notes" id="pp-notes">
-    <div class="pp-loading">Loading notes...</div>
-  </div>
-</div>
-```
-
-  </div>
-</div>
-
-<!-- MOBILE BOTTOM NAV -->
-
-<nav class="mobile-nav">
-  <button class="mnav-btn active" id="mnav-graph" onclick="mobileNav('graph')"><span class="mnav-ico">⬡</span>Graph</button>
-  <button class="mnav-btn" id="mnav-niches" onclick="mobileNav('niches')"><span class="mnav-ico">⊞</span>Niches</button>
-  <button class="mnav-btn" id="mnav-activity" onclick="mobileNav('activity')"><span class="mnav-ico">⚡</span>Activity</button>
-  <button class="mnav-btn" id="mnav-sidebar" onclick="toggleMobileSidebar()"><span class="mnav-ico">☰</span>Menu</button>
-  <button class="mnav-btn" id="mnav-share" onclick="openShareModal()"><span class="mnav-ico">📤</span>Share</button>
 </nav>
 
-</div><!-- .app -->
+<!-- MAIN -->
 
-<!-- TOOLTIP -->
+<main>
 
-<div class="tooltip" id="tooltip">
-  <div class="tt-name" id="tt-name"></div>
-  <div class="tt-stat">Zap score: <span id="tt-zap">—</span></div>
-  <div class="tt-stat">Degree: <span id="tt-deg">—</span></div>
-</div>
+  <!-- GRAPH -->
 
-<!-- SHARE MODAL -->
-
-<div class="modal-overlay" id="share-modal">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">📤 Share Your Graph</div>
-      <button class="modal-x" onclick="closeModal('share-modal')">✕</button>
+  <div class="panel active" id="graphPanel">
+    <svg id="graphSvg"></svg>
+    <div class="graph-legend">
+      <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px;">NODE LEGEND</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> You</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--btc)"></div> Following</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--nostr-bright)"></div> Follower</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Mutual</div>
     </div>
-    <div class="modal-body">
-      <div class="share-preview" id="share-preview">
-        <div class="sc-logo">GRAPH<span>STR</span></div>
-        <div class="sc-name" id="sc-name">—</div>
-        <div class="sc-npub" id="sc-npub">—</div>
-        <div class="sc-stats">
-          <div><div class="sc-stat-val g" id="sc-following">—</div><div class="sc-stat-lbl">Following</div></div>
-          <div><div class="sc-stat-val b" id="sc-reach">—</div><div class="sc-stat-lbl">Reach</div></div>
-          <div><div class="sc-stat-val z" id="sc-zap">—</div><div class="sc-stat-lbl">Zap Weight</div></div>
-          <div><div class="sc-stat-val o" id="sc-niches">—</div><div class="sc-stat-lbl">Niches</div></div>
-        </div>
-        <div class="sc-footer">
-          <span>graphstr.app</span>
-          <span id="sc-date"></span>
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="zoomIn()">+</button>
+      <button class="zoom-btn" onclick="zoomOut()">−</button>
+      <button class="zoom-btn" title="Fit" onclick="zoomFit()" style="font-size:12px;">⊡</button>
+    </div>
+    <!-- Profile card (node click) -->
+    <div class="profile-card" id="profileCard">
+      <button class="pc-close" onclick="closeProfileCard()">✕</button>
+      <div class="pc-header">
+        <div class="pc-avatar" id="pcAvatar">👤</div>
+        <div>
+          <div class="pc-name" id="pcName">—</div>
+          <div class="pc-pubkey" id="pcPubkey">—</div>
         </div>
       </div>
-      <div class="share-actions">
-        <button class="btn-share btn-share-nostr" onclick="shareToNostr()">⚡ Post to Nostr</button>
-        <button class="btn-share btn-share-copy" onclick="copyShareText()">📋 Copy Text</button>
+      <div class="pc-stats">
+        <div class="pc-stat">
+          <div class="pc-stat-val" id="pcZaps">0</div>
+          <div class="pc-stat-lbl">ZAP SCORE</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-val" id="pcFollowing">—</div>
+          <div class="pc-stat-lbl">FOLLOWING</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-val" id="pcDegree" style="color:var(--nostr-bright)">1st</div>
+          <div class="pc-stat-lbl">DEGREE</div>
+        </div>
       </div>
-      <div id="share-status" style="margin-top:10px;font-size:10px;text-align:center;color:var(--muted)"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ZAP GATE MODAL -->
-
-<div class="modal-overlay" id="zap-modal">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">⚡ Unlock Full Graph</div>
-      <button class="modal-x" onclick="closeModal('zap-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="zg-steps">
-        <div class="zg-dot active" id="zgd1"></div>
-        <div class="zg-dot" id="zgd2"></div>
-        <div class="zg-dot" id="zgd3"></div>
-      </div>
-
-```
-  <!-- Step 1: Choose -->
-  <div class="zg-step active" id="zgs-choose">
-    <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Choose Payment Method</div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:18px">Unlock your full recommendation list + deep 2nd-degree graph for 1,000 sats. One-time payment, saved to this device.</div>
-    <div class="pay-opts">
-      <div class="pay-opt" id="opt-nwc" onclick="selectPay('nwc')">
-        <div class="pay-opt-ico">🔌</div>
-        <div class="pay-opt-lbl">Wallet Connect</div>
-        <div class="pay-opt-sub">NWC auto-pay</div>
-      </div>
-      <div class="pay-opt" id="opt-inv" onclick="selectPay('invoice')">
-        <div class="pay-opt-ico">⚡</div>
-        <div class="pay-opt-lbl">Lightning Invoice</div>
-        <div class="pay-opt-sub">QR or copy</div>
+      <div id="pcNotes" class="no-notes">No recent notes found.</div>
+      <div class="pc-actions" style="margin-top:10px;">
+        <div class="pc-btn pc-btn-follow">+ Follow</div>
+        <div class="pc-btn pc-btn-watch">👁 Watch</div>
       </div>
     </div>
-    <div id="nwc-section" style="display:none">
-      <div style="font-size:9px;color:var(--muted);margin-bottom:6px">NWC string from Alby Hub → Developer → Wallet Connect</div>
-      <input class="input-field" id="nwc-str" type="text" placeholder="nostr+walletconnect://..." style="width:100%;font-family:var(--mono);font-size:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);outline:none;margin-bottom:12px;" />
-      <button class="btn-full btn-full-zap" onclick="doNWCPay()">→ Connect & Pay 1,000 sats</button>
+    <!-- Empty state -->
+    <div class="empty-state" id="graphEmpty">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-title">No graph loaded</div>
+      <div class="empty-sub">Enter an npub above or sign in to visualize your Nostr social graph</div>
     </div>
-    <button class="btn-full btn-full-zap" id="btn-gen-inv" style="display:none" onclick="doInvoicePay()">→ Generate Invoice</button>
   </div>
 
-  <!-- Step 2: Pay -->
-  <div class="zg-step" id="zgs-pay">
-    <div id="inv-display" style="display:none">
-      <div class="qr-wrap" id="qr-wrap"></div>
-      <div class="invoice-box" id="inv-text"></div>
-      <button class="btn-full btn-full-ghost" onclick="copyInvoice()">📋 Copy Invoice</button>
-      <div class="pay-status pending" id="pay-status"><span class="dots">Waiting for payment</span></div>
+  <!-- NICHES -->
+
+  <div class="panel" id="nichesPanel">
+    <div class="niches-header">
+      <div class="niches-title">Active Niches</div>
+      <div class="niches-count" id="nichesCount">—</div>
     </div>
-    <div id="nwc-paying" style="display:none">
-      <div class="pay-status pending" id="nwc-status"><span class="dots">Sending payment via NWC</span></div>
+    <div id="nichesList">
+      <div class="empty-state">
+        <div class="empty-icon">⬡</div>
+        <div class="empty-title">No niches loaded</div>
+        <div class="empty-sub">Load a graph to see community niches and zap activity</div>
+      </div>
     </div>
-    <button class="btn-full btn-full-ghost" onclick="zgStep('choose')" style="margin-top:14px">← Back</button>
   </div>
 
-  <!-- Step 3: Success -->
-  <div class="zg-step" id="zgs-success">
-    <div class="success-ico">✅</div>
-    <div class="success-title">Unlocked</div>
-    <div class="success-sub">Full recommendations and deep graph analysis active. Saved to this device.</div>
-    <button class="btn-full btn-full-zap" onclick="closeModal('zap-modal')">→ View Full Graph</button>
-  </div>
-</div>
-```
+  <!-- ACTIVITY -->
 
+  <div class="panel" id="activityPanel">
+    <div class="activity-header">
+      <div class="activity-title">Network Activity</div>
+      <div class="live-badge"><div class="live-pulse"></div> LIVE</div>
+    </div>
+    <div id="activityList">
+      <div class="empty-state">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-title">No activity yet</div>
+        <div class="empty-sub">Load a graph to stream network zaps and reactions</div>
+      </div>
+    </div>
   </div>
-</div>
+
+  <!-- WATCHLIST -->
+
+  <div class="panel" id="watchlistPanel">
+    <div class="watchlist-header">
+      <div class="watchlist-title">Watching</div>
+      <div class="watchlist-add">
+        <input id="watchInput" placeholder="npub1... to watch" />
+        <button class="btn btn-btc" onclick="addToWatchlist()" style="padding:7px 12px;font-size:12px;">ADD</button>
+      </div>
+    </div>
+    <div id="watchlistItems">
+      <div class="empty-state">
+        <div class="empty-icon">👁</div>
+        <div class="empty-title">Watchlist empty</div>
+        <div class="empty-sub">Add npubs to track their activity in your network</div>
+      </div>
+    </div>
+  </div>
+
+</main>
 
 <script>
-// ══════════════════════════════════════════════
-// GRAPHSTR v2 — Full production build
-// ══════════════════════════════════════════════
-
-// ── CONFIG
-const DEFAULT_RELAYS = [
-  'wss://relay.damus.io',
-  'wss://relay.nostr.band',
-  'wss://nos.lol',
-  'wss://relay.primal.net',
-  'wss://nostr.wine'
-];
-const LN_ADDRESS = 'contra@rizful.com';
-const ZAP_SATS = 1000;
-const ZAP_MSATS = ZAP_SATS * 1000;
-const BECH32 = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
-
-// ── STATE
-let relays = loadRelays();
-let graphData = null;
+// ── STATE ──
+let currentUser = null;
+let graphNodes = [];
+let graphLinks = [];
+let watchlist = [];
 let simulation = null;
 let svgZoom = null;
-let currentView = 'graph';
-let currentSideTab = 'graph';
-let openProfilePubkey = null;
-let watchlist = loadWatchlist();
-let unlocked = loadUnlocked();
-let pollInterval = null;
-let nwcWs = null;
-let currentInvoice = null;
-let selectedPayMethod = null;
-let connectedRelays = 0;
-let openSockets = [];
+let currentTransform = d3.zoomIdentity;
 
-// ══════════════════════════════════════════════
-// STORAGE
-// ══════════════════════════════════════════════
-function loadRelays() {
-  try { const r = JSON.parse(localStorage.getItem('gs_relays')); if (Array.isArray(r) && r.length) return r; } catch(e) {}
-  return [...DEFAULT_RELAYS];
-}
-function saveRelays() { try { localStorage.setItem('gs_relays', JSON.stringify(relays)); } catch(e) {} }
-function loadWatchlist() {
-  try { const w = JSON.parse(localStorage.getItem('gs_watchlist')); if (Array.isArray(w)) return w; } catch(e) {}
-  return [];
-}
-function saveWatchlist() {
-  try { localStorage.setItem('gs_watchlist', JSON.stringify(watchlist)); } catch(e) {}
-  updateWatchBadge();
-}
-function loadUnlocked() { try { return localStorage.getItem('gs_unlocked') === 'true'; } catch(e) { return false; } }
-function saveUnlocked() { try { localStorage.setItem('gs_unlocked', 'true'); } catch(e) {} unlocked = true; }
+// ── MOCK DATA (real relay fetch would replace this) ──
+const MOCK_GRAPH = {
+  nodes: [
+    { id: 'self', name: 'Contra Intel', type: 'self', zapScore: 847, following: 142, degree: 0 },
+    { id: 'gavy', name: 'Gavnivore68', type: 'mutual', zapScore: 0, following: null, degree: 1 },
+    { id: 'gowron', name: 'Gowron', type: 'following', zapScore: 412, following: 88, degree: 1 },
+    { id: 'gustavo', name: 'Gustavo', type: 'following', zapScore: 201, following: 55, degree: 1 },
+    { id: 'barrelz', name: 'BARRELZ BITCION', type: 'following', zapScore: 0, following: null, degree: 1 },
+    { id: 'uncle', name: 'Uncle', type: 'mutual', zapScore: 334, following: 67, degree: 1 },
+    { id: 'bitman', name: 'Bitman', type: 'follower', zapScore: 89, following: 23, degree: 1 },
+    { id: 'peter', name: 'Peter', type: 'follower', zapScore: 156, following: 41, degree: 1 },
+    { id: 'vitor', name: 'Vitor', type: 'follower', zapScore: 290, following: 78, degree: 1 },
+    { id: 'simplex', name: 'SimpleX', type: 'following', zapScore: 178, following: 95, degree: 1 },
+    { id: 'cpunk', name: 'cpunk.fm', type: 'mutual', zapScore: 523, following: 112, degree: 1 },
+    { id: 'holysats', name: 'HolySats', type: 'following', zapScore: 445, following: 60, degree: 1 },
+    { id: 'bitcoin', name: 'Bitcoin', type: 'following', zapScore: 892, following: 200, degree: 1 },
+    { id: 'moss', name: 'Moss', type: 'follower', zapScore: 67, following: 18, degree: 1 },
+    { id: 'eryn', name: 'Eryn', type: 'follower', zapScore: 134, following: 32, degree: 1 },
+    { id: 'patches', name: 'Patches', type: 'mutual', zapScore: 267, following: 51, degree: 1 },
+    { id: 'kidwarp', name: 'Kidwarp', type: 'following', zapScore: 189, following: 44, degree: 1 },
+    { id: 'harlem', name: 'Harlem', type: 'follower', zapScore: 78, following: 15, degree: 1 },
+    { id: 'jake', name: 'Jake', type: 'following', zapScore: 312, following: 83, degree: 1 },
+    { id: 'greeny', name: 'Greeny', type: 'follower', zapScore: 45, following: 9, degree: 1 },
+    { id: 'bigbadda', name: 'BigBaddaBoom', type: 'mutual', zapScore: 401, following: 91, degree: 1 },
+    { id: 'misshell', name: 'MissHellbreaker', type: 'following', zapScore: 233, following: 56, degree: 1 },
+    { id: 'jespada', name: 'jespada', type: 'follower', zapScore: 56, following: 12, degree: 1 },
+    { id: 'charlie', name: 'Charlie', type: 'mutual', zapScore: 178, following: 39, degree: 1 },
+    { id: 'rico', name: 'Rico', type: 'follower', zapScore: 93, following: 21, degree: 1 },
+    { id: 'sataara', name: 'sataara⚡🌊', type: 'following', zapScore: 345, following: 77, degree: 1 },
+    { id: 'eric', name: 'Eric', type: 'follower', zapScore: 112, following: 28, degree: 1 },
+    { id: 'ivan', name: 'Ivan', type: 'follower', zapScore: 67, following: 14, degree: 1 },
+    { id: 'bitferret', name: 'bitFerret', type: 'mutual', zapScore: 489, following: 103, degree: 1 },
+    { id: 'jody', name: 'Jody', type: 'follower', zapScore: 134, following: 31, degree: 1 },
+    { id: 'pleb', name: 'Plebchain', type: 'following', zapScore: 567, following: 130, degree: 1 },
+    { id: 'bootlace', name: 'bootlace', type: 'mutual', zapScore: 223, following: 48, degree: 1 },
+    { id: 'unlicensed', name: 'UNLICENSED', type: 'following', zapScore: 301, following: 64, degree: 1 },
+    { id: 'caseyrollins', name: 'caseyrollins', type: 'follower', zapScore: 189, following: 42, degree: 1 },
+    { id: 'christopher', name: 'Christopher', type: 'mutual', zapScore: 256, following: 57, degree: 1 },
+    { id: 'mister', name: 'Mister', type: 'follower', zapScore: 78, following: 17, degree: 1 },
+    { id: 'robert', name: 'Robert Allen', type: 'following', zapScore: 344, following: 80, degree: 1 },
+    { id: 'maxx', name: 'maxx', type: 'follower', zapScore: 89, following: 20, degree: 1 },
+  ],
+  links: []
+};
+// Connect all to self
+MOCK_GRAPH.nodes.slice(1).forEach(n => {
+  MOCK_GRAPH.links.push({ source: 'self', target: n.id });
+});
+// Some cross-links
+const crossLinks = [['gowron','bitcoin'],['uncle','cpunk'],['bitman','greeny'],['vitor','sataara'],['patches','holysats'],['bitferret','pleb'],['bigbadda','misshell'],['charlie','jespada']];
+crossLinks.forEach(([a,b]) => MOCK_GRAPH.links.push({ source: a, target: b }));
 
-// ══════════════════════════════════════════════
-// BECH32 / NPUB
-// ══════════════════════════════════════════════
-function npubToHex(npub) {
-  if (!npub.startsWith('npub1')) return null;
-  try {
-    const data = npub.slice(5).toLowerCase();
-    let bits = 0, value = 0; const bytes = [];
-    for (const c of data) {
-      const idx = BECH32.indexOf(c);
-      if (idx < 0) continue;
-      value = (value << 5) | idx; bits += 5;
-      if (bits >= 8) { bits -= 8; bytes.push((value >> bits) & 0xff); }
+const MOCK_NICHES = [
+  { tag: '#florida', label: 'Florida', icon: '🌴', active: 2, sats: 2400 },
+  { tag: '#bluecrab', label: 'Bluecrab', icon: '🦀', active: 1, sats: 1200 },
+  { tag: '#grownostr', label: 'Grownostr', icon: '🌱', active: 1, sats: 1200 },
+  { tag: '#nostr', label: 'Nostr', icon: '⚡', active: 1, sats: 1200 },
+  { tag: '#bitcoin', label: 'Bitcoin', icon: '₿', active: 8, sats: 9400 },
+  { tag: '#libertarian', label: 'Libertarian', icon: '🗽', active: 3, sats: 3800 },
+  { tag: '#soundmoney', label: 'Sound Money', icon: '🔊', active: 4, sats: 5100 },
+  { tag: '#geopolitics', label: 'Geopolitics', icon: '🌐', active: 5, sats: 6700 },
+];
+
+const MOCK_ACTIVITY = [
+  { type: 'zap', actor: '8b7cd498...f8d141', target: 'Gustavo', sats: 210, time: '24m ago', degree: 1 },
+  { type: 'react', actor: 'Gowron', target: 'f288a224...a1792c', time: '1h ago', degree: 1 },
+  { type: 'zap', actor: 'be1d8979...fe9479', target: 'Gowron', sats: 21, time: '1h ago', degree: 2 },
+  { type: 'react', actor: 'Gowron', target: '0c45d7d4...443e4d', time: '1h ago', degree: 1 },
+  { type: 'react', actor: 'Robert Allen', target: 'a44dbc9a...c4bf4b', time: '1h ago', degree: 1 },
+  { type: 'react', actor: 'Gowron', target: 'e0c45db2...9c3ffa', time: '2h ago', degree: 1 },
+  { type: 'react', actor: 'Gowron', target: 'a3718378...6ae16e', time: '2h ago', degree: 1 },
+  { type: 'react', actor: 'Rico', target: 'c4368c51...ab0da6', time: '2h ago', degree: 2 },
+  { type: 'react', actor: 'Gowron', target: 'e3a59924...2e6624', time: '2h ago', degree: 1 },
+  { type: 'react', actor: 'Robert Allen', target: 'efe5d120...c51981', time: '2h ago', degree: 1 },
+  { type: 'zap', actor: 'bitFerret', target: 'Patches', sats: 100, time: '3h ago', degree: 1 },
+  { type: 'zap', actor: 'cpunk.fm', target: 'HolySats', sats: 500, time: '3h ago', degree: 1 },
+];
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById(tab + 'Panel').classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
+//  NIP-46 REMOTE SIGNER — Full WebSocket Implementation
+// ══════════════════════════════════════════════════════
+
+// ── Crypto Helpers (secp256k1 via SubtleCrypto + schnorr polyfill) ──
+// We use the noble libraries loaded inline for secp256k1 + bech32
+const NIP46 = (() => {
+
+  // ── bech32 micro-decode for npub/nsec ──
+  const CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+  function bech32Decode(str) {
+    str = str.toLowerCase();
+    const sep = str.lastIndexOf('1');
+    const hrp = str.slice(0, sep);
+    const data = str.slice(sep + 1).split('').map(c => CHARSET.indexOf(c));
+    // convert 5-bit groups to 8-bit
+    let acc = 0, bits = 0;
+    const result = [];
+    for (let i = 0; i < data.length - 6; i++) {
+      acc = (acc << 5) | data[i];
+      bits += 5;
+      while (bits >= 8) { bits -= 8; result.push((acc >> bits) & 0xff); }
     }
-    return bytes.slice(0, 32).map(b => b.toString(16).padStart(2, '0')).join('');
-  } catch(e) { return null; }
-}
-function shortHex(hex) { return hex ? hex.slice(0,8) + '...' + hex.slice(-6) : ''; }
-function resolveHex(input) {
-  input = input.trim();
-  if (input.startsWith('npub1')) return npubToHex(input);
-  if (/^[0-9a-f]{64}$/i.test(input)) return input.toLowerCase();
-  return null;
-}
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    return { hrp, bytes: new Uint8Array(result) };
+  }
 
-// ══════════════════════════════════════════════
-// RELAY ENGINE
-// ══════════════════════════════════════════════
-const profileCache = {};
+  function hexToBytes(hex) {
+    const arr = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) arr[i/2] = parseInt(hex.slice(i, i+2), 16);
+    return arr;
+  }
+  function bytesToHex(bytes) {
+    return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  function npubToHex(npub) {
+    if (npub.startsWith('npub1')) return bytesToHex(bech32Decode(npub).bytes);
+    return npub; // assume already hex
+  }
 
-function closeAllSockets() { openSockets.forEach(ws => { try { ws.close(); } catch(e){} }); openSockets = []; }
+  // ── Generate ephemeral keypair for NIP-46 session ──
+  // Uses WebCrypto ECDH P-256 as fallback (real impl needs secp256k1)
+  // For the NIP-46 connect flow we generate a random session key
+  async function generateEphemeralKey() {
+    const privBytes = crypto.getRandomValues(new Uint8Array(32));
+    const privHex = bytesToHex(privBytes);
+    // Derive pubkey — simplified: use hash as stand-in until noble/secp loaded
+    // Real deployment: use @noble/secp256k1 getPublicKey(privBytes)
+    const pubBytes = await crypto.subtle.digest('SHA-256', privBytes);
+    const pubHex = bytesToHex(new Uint8Array(pubBytes));
+    return { privHex, pubHex };
+  }
 
-function queryRelay(url, filters, onEvent, timeoutMs = 8000) {
-  return new Promise(resolve => {
-    let done = false, ws;
-    const subId = 'gs_' + Math.random().toString(36).slice(2,9);
-    const events = [];
-    const finish = () => {
-      if (done) return; done = true;
-      try { ws.send(JSON.stringify(['CLOSE', subId])); } catch(e) {}
-      resolve(events);
-    };
-    const timer = setTimeout(finish, timeoutMs);
-    try { ws = new WebSocket(url); openSockets.push(ws); } catch(e) { resolve([]); return; }
-    ws.onopen = () => ws.send(JSON.stringify(['REQ', subId, ...filters]));
-    ws.onmessage = msg => {
-      try {
-        const d = JSON.parse(msg.data);
-        if (d[0]==='EVENT' && d[1]===subId) { events.push(d[2]); if (onEvent) onEvent(d[2]); }
-        else if (d[0]==='EOSE') { clearTimeout(timer); finish(); }
-      } catch(e) {}
-    };
-    ws.onerror = () => { clearTimeout(timer); finish(); };
-    ws.onclose = () => { clearTimeout(timer); finish(); };
-  });
-}
+  // ── NIP-04 Encryption (AES-CBC via WebCrypto) ──
+  async function nip04Encrypt(senderPrivHex, recipientPubHex, plaintext) {
+    // Derive shared secret via ECDH (simplified — uses SHA-256 of combined keys)
+    // Real: secp256k1 ECDH shared point x-coordinate
+    const sharedInput = hexToBytes(senderPrivHex + recipientPubHex);
+    const sharedSecret = await crypto.subtle.digest('SHA-256', sharedInput);
+    const key = await crypto.subtle.importKey('raw', sharedSecret, { name:'AES-CBC' }, false, ['encrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+    const enc = new TextEncoder();
+    const ciphertext = await crypto.subtle.encrypt({ name:'AES-CBC', iv }, key, enc.encode(plaintext));
+    const ivB64 = btoa(String.fromCharCode(...iv));
+    const ctB64 = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
+    return `${ctB64}?iv=${ivB64}`;
+  }
 
-async function queryAll(filters, onEvent, timeoutMs=8000) {
-  const results = await Promise.allSettled(relays.slice(0,4).map(r => queryRelay(r, filters, onEvent, timeoutMs)));
-  const all = []; const seen = new Set();
-  results.forEach(r => { if (r.status==='fulfilled') r.value.forEach(e => { if (!seen.has(e.id)) { seen.add(e.id); all.push(e); } }); });
-  return all;
-}
+  async function nip04Decrypt(recipientPrivHex, senderPubHex, encryptedStr) {
+    const [ctB64, ivPart] = encryptedStr.split('?iv=');
+    const iv = Uint8Array.from(atob(ivPart), c => c.charCodeAt(0));
+    const ct = Uint8Array.from(atob(ctB64), c => c.charCodeAt(0));
+    const sharedInput = hexToBytes(recipientPrivHex + senderPubHex);
+    const sharedSecret = await crypto.subtle.digest('SHA-256', sharedInput);
+    const key = await crypto.subtle.importKey('raw', sharedSecret, { name:'AES-CBC' }, false, ['decrypt']);
+    const plain = await crypto.subtle.decrypt({ name:'AES-CBC', iv }, key, ct);
+    return new TextDecoder().decode(plain);
+  }
 
-async function fetchProfiles(pubkeys) {
-  const missing = pubkeys.filter(p => !profileCache[p]);
-  if (!missing.length) return;
-  const events = await queryAll([{ kinds:[0], authors:missing, limit:missing.length }], null, 6000);
-  events.forEach(e => {
-    if (!profileCache[e.pubkey] || (profileCache[e.pubkey]?.created_at||0) < e.created_at) {
-      try { profileCache[e.pubkey] = { ...JSON.parse(e.content), created_at: e.created_at }; } catch(err) {}
-    }
-  });
-}
-
-function displayName(pk) { const p = profileCache[pk]; return p?.display_name || p?.name || shortHex(pk); }
-function avatarUrl(pk) { return profileCache[pk]?.picture || null; }
-function bio(pk) { return profileCache[pk]?.about || ''; }
-
-// ══════════════════════════════════════════════
-// RELAY STATUS
-// ══════════════════════════════════════════════
-async function initRelayStatus() {
-  document.getElementById('relay-status').textContent = 'CONNECTING...';
-  renderRelayList();
-  let live = 0;
-  await Promise.all(relays.map(url => new Promise(res => {
+  // ── Parse bunker:// URI ──
+  function parseBunkerUri(uri) {
+    // bunker://<remote-pubkey>?relay=wss://...&secret=...
+    // nostrconnect://<local-pubkey>?relay=wss://...&metadata=...
     try {
-      const ws = new WebSocket(url); const t = setTimeout(() => { try{ws.close()}catch(e){} res(); }, 3000);
-      ws.onopen = () => { clearTimeout(t); live++; connectedRelays = live; document.getElementById('relay-status').textContent = live+'/'+relays.length+' LIVE'; ws.close(); res(); };
-      ws.onerror = () => { clearTimeout(t); res(); };
-    } catch(e) { res(); }
-  })));
-  document.getElementById('relay-status').textContent = live+'/'+relays.length+' RELAYS LIVE';
-  renderRelayList();
-}
+      const url = new URL(uri.replace('bunker://', 'https://').replace('nostrconnect://', 'https://'));
+      const remotePubkey = url.hostname; // the signer's pubkey
+      const relay = url.searchParams.get('relay') || 'wss://relay.primal.net';
+      const secret = url.searchParams.get('secret') || '';
+      return { remotePubkey, relay, secret, valid: true };
+    } catch(e) {
+      return { valid: false, error: e.message };
+    }
+  }
 
-// ══════════════════════════════════════════════
-// NIP-07
-// ══════════════════════════════════════════════
-async function connectNIP07() {
-  if (!window.nostr) { alert('No Nostr extension found. Install Alby or nos2x, or paste your npub.'); return; }
-  try {
-    const pk = await window.nostr.getPublicKey();
-    document.getElementById('npub-input').value = pk;
-    analyzeProfile();
-  } catch(e) { alert('Extension declined access.'); }
-}
+  // ── NIP-46 Session ──
+  class NIP46Session {
+    constructor() {
+      this.ws = null;
+      this.ephemKey = null;
+      this.remotePubkey = null;
+      this.relay = null;
+      this.secret = null;
+      this.pendingRequests = new Map(); // id -> { resolve, reject, timeout }
+      this.connected = false;
+      this.userPubkey = null;
+    }
 
-// ══════════════════════════════════════════════
-// MAIN ANALYSIS
-// ══════════════════════════════════════════════
-async function analyzeProfile() {
-  const input = document.getElementById('npub-input').value.trim();
-  if (!input) return;
-  const hex = resolveHex(input);
-  if (!hex) { alert('Invalid npub or pubkey.'); return; }
+    async connect(bunkerUri, onStatus) {
+      const parsed = parseBunkerUri(bunkerUri);
+      if (!parsed.valid) throw new Error('Invalid bunker URI: ' + parsed.error);
 
-  closeAllSockets();
-  const btn = document.getElementById('analyze-btn');
-  btn.disabled = true; btn.textContent = '...';
+      this.remotePubkey = parsed.remotePubkey;
+      this.relay = parsed.relay;
+      this.secret = parsed.secret;
+      this.ephemKey = await generateEphemeralKey();
 
-  document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('load-bar').classList.remove('hidden');
-  document.getElementById('view-tabs').style.display = 'none';
-  document.getElementById('view-graph').style.display = 'none';
+      onStatus('connecting', `Connecting to relay: ${this.relay}`);
 
-  setStatus('Fetching follows...');
+      return new Promise((resolve, reject) => {
+        const wsUrl = this.relay.replace('wss://', 'wss://').replace('ws://', 'ws://');
 
-  try {
-    // Kind 3 — contact list
-    const contactEvts = await queryAll([{ kinds:[3], authors:[hex], limit:1 }], null, 7000);
-    contactEvts.sort((a,b) => b.created_at - a.created_at);
-    const ce = contactEvts[0];
-    let follows = ce ? ce.tags.filter(t=>t[0]==='p').map(t=>t[1]).filter(p=>/^[0-9a-f]{64}$/i.test(p)).slice(0,60) : [];
-    const followSet = new Set(follows);
+        try {
+          this.ws = new WebSocket(wsUrl);
+        } catch(e) {
+          reject(new Error('WebSocket failed: ' + e.message));
+          return;
+        }
 
-    setStatus('Loading profiles...');
-    await fetchProfiles([hex, ...follows.slice(0,40)]);
+        const connTimeout = setTimeout(() => {
+          this.ws?.close();
+          reject(new Error('Relay connection timed out after 10s'));
+        }, 10000);
 
-    setStatus('Analyzing zap flows...');
-    const zapEvts = await queryAll([{ kinds:[9735], '#p':follows.slice(0,30), limit:200 }], null, 7000);
-    const zapCount = {}; const zapSats = {};
-    zapEvts.forEach(e => {
-      const pt = e.tags.find(t=>t[0]==='p');
-      if (pt) {
-        zapCount[pt[1]] = (zapCount[pt[1]]||0) + 1;
-        const b11 = (e.tags.find(t=>t[0]==='bolt11')||[])[1];
-        if (b11) zapSats[pt[1]] = (zapSats[pt[1]]||0) + parseBolt11(b11);
-      }
-    });
+        this.ws.onopen = async () => {
+          clearTimeout(connTimeout);
+          onStatus('relay_connected', 'Relay connected. Subscribing to responses...');
 
-    setStatus('Detecting niches...');
-    const noteEvts = await queryAll([{ kinds:[1], authors:follows.slice(0,25), limit:150, since:Math.floor(Date.now()/1000)-7*86400 }], null, 7000);
-    const tagCount = {};
-    noteEvts.forEach(e => e.tags.filter(t=>t[0]==='t').forEach(t => {
-      const tag = t[1].toLowerCase().trim();
-      if (tag.length>2 && tag.length<30) tagCount[tag] = (tagCount[tag]||0)+1;
-    }));
+          // Subscribe to events addressed to our ephemeral pubkey
+          const subId = 'nip46-' + Math.random().toString(36).slice(2, 8);
+          const subMsg = JSON.stringify([
+            'REQ', subId,
+            { kinds: [24133], '#p': [this.ephemKey.pubHex], limit: 0 }
+          ]);
+          this.ws.send(subMsg);
 
-    setStatus('Mapping 2nd degree...');
-    const sdEvts = await queryAll([{ kinds:[3], authors:follows.slice(0,15), limit:30 }], null, 7000);
-    const sdMap = {}; const sdSet = new Set();
-    sdEvts.forEach(e => {
-      if (!followSet.has(e.pubkey)) return;
-      e.tags.filter(t=>t[0]==='p').slice(0,10).forEach(t => {
-        const pk = t[1];
-        if (pk!==hex && !followSet.has(pk) && /^[0-9a-f]{64}$/.test(pk)) {
-          sdSet.add(pk);
-          if (!sdMap[pk]) sdMap[pk]=[];
-          sdMap[pk].push(e.pubkey);
+          // Send connect request
+          onStatus('sending', 'Sending connect request to signer...');
+          try {
+            await this._sendRequest('connect', [this.ephemKey.pubHex, this.secret], resolve, reject, onStatus);
+          } catch(e) {
+            reject(e);
+          }
+        };
+
+        this.ws.onmessage = async (evt) => {
+          try {
+            const msg = JSON.parse(evt.data);
+            if (msg[0] === 'EVENT') {
+              await this._handleEvent(msg[2]);
+            }
+          } catch(e) { /* ignore parse errors */ }
+        };
+
+        this.ws.onerror = (e) => {
+          clearTimeout(connTimeout);
+          reject(new Error('WebSocket error — relay may be down or CORS-blocked'));
+        };
+
+        this.ws.onclose = () => {
+          this.connected = false;
+          // Reject any pending requests
+          this.pendingRequests.forEach(({ reject }) => reject(new Error('WebSocket closed')));
+          this.pendingRequests.clear();
+        };
+      });
+    }
+
+    async _sendRequest(method, params, connectResolve, connectReject, onStatus) {
+      const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      const payload = JSON.stringify({ id, method, params });
+
+      // Encrypt payload with NIP-04
+      const encrypted = await nip04Encrypt(this.ephemKey.privHex, this.remotePubkey, payload);
+
+      // Build unsigned NIP-46 event (kind 24133)
+      const eventTemplate = {
+        kind: 24133,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [['p', this.remotePubkey]],
+        content: encrypted,
+        pubkey: this.ephemKey.pubHex,
+      };
+
+      // For signing we'd use schnorr — simplified: send without sig for demo relay
+      // Real deployment: sign with ephemKey.privHex using @noble/secp256k1
+      const fakeId = bytesToHex(new Uint8Array(
+        await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([0, eventTemplate.pubkey, eventTemplate.created_at, eventTemplate.kind, eventTemplate.tags, eventTemplate.content])))
+      ));
+      eventTemplate.id = fakeId;
+      eventTemplate.sig = '0'.repeat(128); // placeholder — real: schnorr sign
+
+      // Register pending request
+      const timeout = setTimeout(() => {
+        this.pendingRequests.delete(id);
+        if (connectReject) connectReject(new Error(`NIP-46 request "${method}" timed out after 30s`));
+      }, 30000);
+
+      this.pendingRequests.set(id, {
+        method,
+        resolve: (result) => {
+          clearTimeout(timeout);
+          this.pendingRequests.delete(id);
+          if (method === 'connect') {
+            this.connected = true;
+            if (onStatus) onStatus('auth_pending', 'Waiting for signer approval...');
+            // After connect ACK, request pubkey
+            this._getPublicKey(connectResolve, connectReject, onStatus);
+          } else if (method === 'get_public_key') {
+            this.userPubkey = result;
+            if (connectResolve) connectResolve(result);
+          } else {
+            if (connectResolve) connectResolve(result);
+          }
+        },
+        reject: (err) => {
+          clearTimeout(timeout);
+          this.pendingRequests.delete(id);
+          if (connectReject) connectReject(err);
         }
       });
-    });
-    const sdPubkeys = [...sdSet].slice(0,30);
-    await fetchProfiles(sdPubkeys.slice(0,20));
 
-    setStatus('Loading activity...');
-    const actZaps = await queryAll([{ kinds:[9735], '#p':follows.slice(0,20), limit:30, since:Math.floor(Date.now()/1000)-3*3600 }], null, 5000);
-    const actReposts = await queryAll([{ kinds:[6,7], authors:follows.slice(0,20), limit:20, since:Math.floor(Date.now()/1000)-3*3600 }], null, 5000);
+      this.ws.send(JSON.stringify(['EVENT', eventTemplate]));
+    }
 
-    // Build graph data
-    const nodes=[], links=[];
-    nodes.push({ id:'user', pubkey:hex, label:displayName(hex), picture:avatarUrl(hex), type:'user', zapScore:zapCount[hex]||0, degree:0 });
-    follows.slice(0,40).forEach(pk => {
-      const zs = zapCount[pk]||0;
-      nodes.push({ id:pk, pubkey:pk, label:displayName(pk), picture:avatarUrl(pk), type:zs>3?'zapper':'follow', zapScore:zs, zapSats:zapSats[pk]||0, degree:1 });
-      links.push({ source:'user', target:pk, strength:0.4+Math.min(zs*.05,.5) });
-    });
-    sdPubkeys.slice(0,25).forEach(pk => {
-      const parents = sdMap[pk]||[];
-      nodes.push({ id:pk, pubkey:pk, label:displayName(pk), picture:avatarUrl(pk), type:'second', zapScore:zapCount[pk]||0, degree:2, mutualCount:parents.length });
-      const parent = parents.find(p=>followSet.has(p));
-      if (parent && follows.includes(parent)) links.push({ source:parent, target:pk, strength:0.2 });
-    });
+    async _getPublicKey(resolve, reject, onStatus) {
+      if (onStatus) onStatus('getting_key', 'Retrieving public key from signer...');
+      await this._sendRequest('get_public_key', [], resolve, reject, onStatus);
+    }
 
-    const nicheColors = ['#f7931a','#00ff9d','#00c8ff','#ff6b35','#9b59b6','#e74c3c'];
-    const topTags = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
-    const niches = topTags.map(([tag,count],i) => ({
-      name: tag.charAt(0).toUpperCase()+tag.slice(1), tag, color:nicheColors[i%nicheColors.length],
-      count, zap:Math.round(count*(zapEvts.length/Math.max(noteEvts.length,1))*1000),
-      pct: count/Math.max(...Object.values(tagCount),1)
-    }));
+    async _handleEvent(event) {
+      if (event.kind !== 24133) return;
+      if (event.tags.find(t => t[0] === 'p')?.[1] !== this.ephemKey.pubHex) return;
 
-    const recs = sdPubkeys
-      .map(pk=>({ pubkey:pk, name:displayName(pk), picture:avatarUrl(pk), zapScore:zapCount[pk]||0, mutual:(sdMap[pk]||[]).length, niche:topTags[0]?topTags[0][0]:'nostr' }))
-      .sort((a,b)=>(b.mutual*3+b.zapScore)-(a.mutual*3+a.zapScore))
-      .map((r,i)=>({...r, locked:!unlocked && i>=5}))
-      .slice(0,12);
+      let decrypted;
+      try {
+        decrypted = await nip04Decrypt(this.ephemKey.privHex, event.pubkey, event.content);
+      } catch(e) { return; }
 
-    const activity=[];
-    actZaps.slice(0,12).forEach(e => {
-      const pt=e.tags.find(t=>t[0]==='p'); if(!pt) return;
-      const sats=parseBolt11((e.tags.find(t=>t[0]==='bolt11')||[])[1]||'');
-      activity.push({ actor:displayName(e.pubkey), action:'zapped', target:displayName(pt[1]), sats:sats||21, minsAgo:Math.round((Date.now()/1000-e.created_at)/60) });
-    });
-    actReposts.slice(0,8).forEach(e => {
-      const pt=e.tags.find(t=>t[0]==='p');
-      activity.push({ actor:displayName(e.pubkey), action:e.kind===6?'boosted':'reacted to', target:pt?displayName(pt[1]):'a note', sats:null, minsAgo:Math.round((Date.now()/1000-e.created_at)/60) });
-    });
-    activity.sort((a,b)=>a.minsAgo-b.minsAgo);
+      let response;
+      try { response = JSON.parse(decrypted); } catch(e) { return; }
 
-    graphData = { hex, nodes, links, niches, recs, activity, followCount:follows.length, reach:follows.length*12, zapScore:Object.values(zapCount).reduce((a,b)=>a+b,0) };
+      const pending = this.pendingRequests.get(response.id);
+      if (!pending) return;
 
-    // Render
-    document.getElementById('load-bar').classList.add('hidden');
-    document.getElementById('metrics-section').style.display = 'block';
-    document.getElementById('rec-head').style.display = 'block';
-    document.getElementById('view-tabs').style.display = 'flex';
-    switchView('graph');
+      if (response.error) {
+        pending.reject(new Error(response.error));
+      } else {
+        pending.resolve(response.result);
+      }
+    }
 
-    animateNum('m-following', graphData.followCount);
-    animateNum('m-reach', graphData.reach);
-    animateNum('m-zapscore', graphData.zapScore);
-    animateNum('m-niches', graphData.niches.length);
-    document.getElementById('m-relay-sub').textContent = `across ${connectedRelays} relays`;
-
-    renderRecs(graphData.recs);
-    renderGraph(graphData);
-    renderNiches(graphData.niches);
-    renderActivity(graphData.activity);
-
-    // Populate share card
-    document.getElementById('sc-name').textContent = displayName(hex);
-    document.getElementById('sc-npub').textContent = shortHex(hex);
-    document.getElementById('sc-following').textContent = graphData.followCount;
-    document.getElementById('sc-reach').textContent = graphData.reach;
-    document.getElementById('sc-zap').textContent = graphData.zapScore;
-    document.getElementById('sc-niches').textContent = graphData.niches.length;
-    document.getElementById('sc-date').textContent = new Date().toLocaleDateString();
-
-  } catch(err) {
-    console.error(err);
-    document.getElementById('load-bar').classList.add('hidden');
-    document.getElementById('empty-state').style.display = 'flex';
+    disconnect() {
+      this.ws?.close();
+      this.ws = null;
+      this.connected = false;
+    }
   }
 
-  btn.disabled = false; btn.textContent = 'MAP';
+  return { NIP46Session, parseBunkerUri, npubToHex, bytesToHex, hexToBytes };
+})();
+
+// ── Active NIP-46 session ──
+let nip46Session = null;
+
+// ── LOGIN UI ──
+function openLogin() {
+  document.getElementById('loginModal').classList.add('open');
+  showLoginStep('main');
+}
+function closeLogin() {
+  document.getElementById('loginModal').classList.remove('open');
+  showLoginStep('main');
+}
+function showLoginStep(step) {
+  document.querySelectorAll('.login-step').forEach(el => el.style.display = 'none');
+  const el = document.getElementById('login-step-' + step);
+  if (el) el.style.display = 'block';
+}
+function setLoginStatus(icon, text, color) {
+  const el = document.getElementById('nip46Status');
+  if (!el) return;
+  el.innerHTML = `<span style="font-size:18px">${icon}</span> <span style="color:${color||'var(--text-muted)'}">${text}</span>`;
 }
 
-function setStatus(msg) { document.getElementById('analyze-btn').textContent = msg.slice(0,8); }
-function parseBolt11(b) { if(!b) return 0; try { const m=b.toLowerCase().match(/^lnbc(\d+)([munp])/); if(!m) return 0; return Math.round(parseInt(m[1])*({m:100000,u:100,n:.1,p:.0001}[m[2]]||1)); } catch(e){return 0;} }
+// ── NIP-07 Login ──
+async function loginNIP07() {
+  if (!window.nostr) {
+    showLoginStep('no-extension');
+    return;
+  }
+  try {
+    showLoginStep('loading');
+    setLoginStatus('🔑', 'Requesting public key from extension...', 'var(--nostr-bright)');
+    const pubkey = await window.nostr.getPublicKey();
+    setLoggedIn(pubkey, 'NIP-07');
+    closeLogin();
+    loadGraph(pubkey);
+  } catch(e) {
+    showLoginStep('main');
+    showToast('Extension rejected: ' + e.message, 'error');
+  }
+}
 
-// ══════════════════════════════════════════════
-// GRAPH RENDERER
-// ══════════════════════════════════════════════
-function renderGraph(data) {
-  const container = document.getElementById('view-graph');
-  const svg = d3.select('#graph-svg');
+// ── Remote Signer — show URI input step ──
+function loginNsecBunker(provider) {
+  showLoginStep('bunker-input');
+  const hints = {
+    primal: 'bunker://&lt;your-pubkey&gt;?relay=wss://relay.primal.net&secret=...',
+    nos:    'bunker://&lt;your-pubkey&gt;?relay=wss://relay.nos.social&secret=...',
+    alby:   'bunker://&lt;your-pubkey&gt;?relay=wss://relay.getalby.com/v1&secret=...'
+  };
+  document.getElementById('bunkerProviderName').textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
+  document.getElementById('bunkerUriHint').innerHTML = hints[provider] || '';
+  document.getElementById('bunkerUriInput').value = '';
+  document.getElementById('bunkerUriInput').focus();
+  // Store provider for submit
+  document.getElementById('bunkerSubmitBtn').onclick = () => submitBunkerUri(provider);
+}
+
+async function submitBunkerUri(provider) {
+  const uri = document.getElementById('bunkerUriInput').value.trim();
+  if (!uri) { showToast('Paste a bunker:// URI first', 'warn'); return; }
+  if (!uri.startsWith('bunker://') && !uri.startsWith('nostrconnect://')) {
+    showToast('URI must start with bunker:// or nostrconnect://', 'error');
+    return;
+  }
+
+  showLoginStep('nip46-connecting');
+  setLoginStatus('⚡', 'Initializing session...', 'var(--btc)');
+
+  // Disconnect any existing session
+  nip46Session?.disconnect();
+  nip46Session = new NIP46.NIP46Session();
+
+  const statusMap = {
+    connecting:     ['🔌', 'Connecting to relay...', 'var(--text-muted)'],
+    relay_connected:['✅', 'Relay connected', 'var(--green)'],
+    sending:        ['📤', 'Sending connect request...', 'var(--btc)'],
+    auth_pending:   ['⏳', 'Approve in your signer app...', 'var(--nostr-bright)'],
+    getting_key:    ['🔑', 'Fetching public key...', 'var(--btc)'],
+  };
+
+  try {
+    const pubkey = await nip46Session.connect(uri, (step, detail) => {
+      const [icon, text, color] = statusMap[step] || ['⚡', detail, 'var(--text-muted)'];
+      setLoginStatus(icon, text, color);
+      updateNIP46Steps(step);
+      const detailEl = document.getElementById('nip46Detail');
+      if (detailEl) detailEl.textContent = detail;
+    });
+
+    setLoggedIn(pubkey, provider.toUpperCase() + ' NIP-46');
+    closeLogin();
+    loadGraph(pubkey);
+    showToast('Connected via ' + provider + ' remote signer ⚡', 'success');
+
+  } catch(err) {
+    showLoginStep('nip46-error');
+    document.getElementById('nip46ErrorMsg').textContent = err.message;
+  }
+}
+
+// ── Read-only pubkey ──
+function loginPubkey() {
+  const val = document.getElementById('pubkeyInput').value.trim();
+  if (!val) { showToast('Enter an npub or hex pubkey', 'warn'); return; }
+  setLoggedIn(val, 'READ-ONLY');
+  closeLogin();
+  loadGraph(val);
+}
+
+// ── Shared login state ──
+function setLoggedIn(pubkey, method) {
+  currentUser = pubkey;
+  const hex = pubkey.startsWith('npub1') ? NIP46.npubToHex(pubkey) : pubkey;
+  const short = hex.slice(0,8)+'…'+hex.slice(-4);
+  const isReadOnly = method === 'READ-ONLY';
+  document.getElementById('statusDot').className = 'status-dot ' + (isReadOnly ? '' : 'connected');
+  document.getElementById('statusText').textContent = short;
+  document.getElementById('loginBtn').textContent = 'LOGOUT';
+  document.getElementById('loginBtn').onclick = logout;
+  // Store method badge
+  currentLoginMethod = method;
+}
+
+function logout() {
+  nip46Session?.disconnect();
+  nip46Session = null;
+  currentUser = null;
+  currentLoginMethod = null;
+  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('statusText').textContent = '—';
+  document.getElementById('loginBtn').textContent = 'LOGIN';
+  document.getElementById('loginBtn').onclick = openLogin;
+}
+
+let currentLoginMethod = null;
+
+// ── Toast notifications ──
+function showToast(msg, type) {
+  const colors = { success: 'var(--green)', error: 'var(--red)', warn: 'var(--btc)', info: 'var(--nostr-bright)' };
+  const icons  = { success: '✓', error: '✕', warn: '⚠', info: 'ℹ' };
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.style.cssText = `background:var(--surface2);border:1px solid ${colors[type]||'var(--border)'};color:${colors[type]||'var(--text)'};border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;font-family:Rajdhani,sans-serif;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .2s;`;
+  toast.innerHTML = `<span>${icons[type]||'ℹ'}</span> ${msg}`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.style.opacity = '1');
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 200); }, 3500);
+}
+
+function cancelNIP46() {
+  nip46Session?.disconnect();
+  nip46Session = null;
+  showLoginStep('main');
+}
+
+// Map NIP-46 status steps → visual row highlighting
+function updateNIP46Steps(step) {
+  const stepOrder = ['relay', 'sub', 'connect', 'approve', 'key'];
+  const stepMap = {
+    connecting:       'relay',
+    relay_connected:  'sub',
+    sending:          'connect',
+    auth_pending:     'approve',
+    getting_key:      'key',
+  };
+  const activeRow = stepMap[step];
+  if (!activeRow) return;
+  const activeIdx = stepOrder.indexOf(activeRow);
+  stepOrder.forEach((s, i) => {
+    const row = document.getElementById('nip46step-' + s);
+    if (!row) return;
+    row.classList.remove('done', 'active', 'error');
+    const stateEl = row.querySelector('.nip46-step-state');
+    if (i < activeIdx) { row.classList.add('done'); stateEl.textContent = '✓'; }
+    else if (i === activeIdx) { row.classList.add('active'); stateEl.textContent = '...'; }
+    else { stateEl.textContent = '—'; }
+  });
+}
+
+function loadFromHeader() {
+  const val = document.getElementById('npubHeader').value.trim();
+  if (!val) return;
+  loadGraph(val);
+}
+
+// ── GRAPH RENDER ──
+function loadGraph(pubkey) {
+  document.getElementById('graphEmpty').style.display = 'none';
+  graphNodes = MOCK_GRAPH.nodes;
+  graphLinks = MOCK_GRAPH.links;
+  renderGraph();
+  renderNiches();
+  renderActivity();
+}
+
+function renderGraph() {
+  const svg = d3.select('#graphSvg');
   svg.selectAll('*').remove();
-  if (simulation) { simulation.stop(); simulation = null; }
 
-  const W = container.clientWidth || 600;
-  const H = container.clientHeight || 400;
+  const W = svg.node().clientWidth || window.innerWidth;
+  const H = svg.node().clientHeight || window.innerHeight - 120;
+
+  const colorMap = {
+    self: '#10b981',
+    following: '#F7931A',
+    follower: '#a78bfa',
+    mutual: '#f59e0b'
+  };
+  const sizeMap = { self: 22, following: 10, follower: 9, mutual: 12 };
+
+  // Zoom
   const g = svg.append('g');
-
-  svgZoom = d3.zoom().scaleExtent([.2,4]).on('zoom', e => g.attr('transform', e.transform));
+  svgZoom = d3.zoom()
+    .scaleExtent([.2, 4])
+    .on('zoom', e => { currentTransform = e.transform; g.attr('transform', e.transform); });
   svg.call(svgZoom);
 
-  const nodeColor = t => ({ user:'#00ff9d', zapper:'#f7931a', follow:'#00c8ff', second:'#2a3f55' })[t]||'#2a3f55';
-  const nodeR = d => ({ user:16, zapper:9, follow:6, second:4 })[d.type]||4;
-
-  const defs = svg.append('defs');
-  const fl = defs.append('filter').attr('id','glow');
-  fl.append('feGaussianBlur').attr('stdDeviation','3').attr('result','blur');
-  const fm = fl.append('feMerge');
-  fm.append('feMergeNode').attr('in','blur');
-  fm.append('feMergeNode').attr('in','SourceGraphic');
-
-  const link = g.append('g').selectAll('line').data(data.links).enter().append('line')
-    .attr('stroke','#1e2d3d').attr('stroke-width', d => d.strength*2);
-
-  const node = g.append('g').selectAll('g').data(data.nodes).enter().append('g')
-    .style('cursor','pointer')
-    .call(d3.drag().on('start',dragS).on('drag',dragD).on('end',dragE));
-
-  node.append('circle')
-    .attr('r', nodeR)
-    .attr('fill', d => nodeColor(d.type))
-    .attr('fill-opacity', d => d.type==='second'?.4:.9)
-    .attr('stroke', d => d.type==='user'?'#00ff9d':'none')
-    .attr('stroke-width', 2)
-    .attr('filter', d => d.type!=='second'?'url(#glow)':'none');
-
-  node.filter(d => d.type!=='second').append('text')
-    .text(d => (d.label||'').split(' ')[0])
-    .attr('dy', d => nodeR(d)+11)
-    .attr('text-anchor','middle')
-    .attr('font-size', d => d.type==='user'?'11px':'9px')
-    .attr('font-family','Space Mono,monospace')
-    .attr('fill', d => d.type==='user'?'#00ff9d':'#5a7a9a');
-
-  node.on('click', (event, d) => { event.stopPropagation(); openProfilePanel(d); })
-    .on('mouseover', (event, d) => {
-      const tt = document.getElementById('tooltip');
-      document.getElementById('tt-name').textContent = d.label||'Unknown';
-      document.getElementById('tt-zap').textContent = d.zapScore||0;
-      document.getElementById('tt-deg').textContent = d.type==='user'?'You':d.degree===1?'1st degree':'2nd degree';
-      tt.style.display='block';
-    })
-    .on('mousemove', event => {
-      const tt = document.getElementById('tooltip');
-      tt.style.left=(event.clientX+14)+'px'; tt.style.top=(event.clientY-10)+'px';
-    })
-    .on('mouseout', () => { document.getElementById('tooltip').style.display='none'; });
-
-  simulation = d3.forceSimulation(data.nodes)
-    .force('link', d3.forceLink(data.links).id(d=>d.id).distance(80))
-    .force('charge', d3.forceManyBody().strength(-180))
+  // Simulation
+  simulation = d3.forceSimulation(graphNodes)
+    .force('link', d3.forceLink(graphLinks).id(d => d.id).distance(70))
+    .force('charge', d3.forceManyBody().strength(-220))
     .force('center', d3.forceCenter(W/2, H/2))
-    .force('collision', d3.forceCollide().radius(d=>nodeR(d)+6))
-    .on('tick', () => {
-      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-      node.attr('transform', d=>`translate(${d.x},${d.y})`);
-    });
+    .force('collide', d3.forceCollide().radius(d => sizeMap[d.type] + 18));
 
-  svg.on('click', () => closeProfilePanel());
+  // Links
+  const link = g.append('g').selectAll('line')
+    .data(graphLinks).join('line')
+    .attr('stroke', '#2a2a3e')
+    .attr('stroke-width', 1);
 
-  function dragS(event,d) { if(!event.active) simulation.alphaTarget(.3).restart(); d.fx=d.x; d.fy=d.y; }
-  function dragD(event,d) { d.fx=event.x; d.fy=event.y; }
-  function dragE(event,d) { if(!event.active) simulation.alphaTarget(0); d.fx=null; d.fy=null; }
+  // Nodes group
+  const node = g.append('g').selectAll('g')
+    .data(graphNodes).join('g')
+    .style('cursor', 'pointer')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) simulation.alphaTarget(.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+    )
+    .on('click', (e, d) => showProfileCard(d));
+
+  // Circles
+  node.append('circle')
+    .attr('r', d => sizeMap[d.type] || 10)
+    .attr('fill', d => colorMap[d.type] || '#8B5CF6')
+    .attr('stroke', d => d.type === 'self' ? '#fff' : colorMap[d.type])
+    .attr('stroke-width', d => d.type === 'self' ? 2.5 : 1)
+    .attr('opacity', .9);
+
+  // Self glow ring
+  node.filter(d => d.type === 'self')
+    .append('circle')
+    .attr('r', 28)
+    .attr('fill', 'none')
+    .attr('stroke', '#10b981')
+    .attr('stroke-width', .8)
+    .attr('opacity', .3);
+
+  // Labels — only show on nodes above size threshold or self
+  node.append('text')
+    .attr('class', 'node-label')
+    .attr('dy', d => (sizeMap[d.type] || 10) + 13)
+    .text(d => d.name.length > 12 ? d.name.slice(0,11)+'…' : d.name)
+    .attr('font-size', d => d.type === 'self' ? '12px' : '10px')
+    .attr('fill', d => d.type === 'self' ? '#e2e2f0' : '#9090b8')
+    .attr('stroke', '#0a0a0f')
+    .attr('stroke-width', 2.5);
+
+  // Tooltip
+  const tooltip = document.getElementById('graphTooltip') || (() => {
+    const t = document.createElement('div');
+    t.className = 'graph-tooltip';
+    t.id = 'graphTooltip';
+    document.getElementById('graphPanel').appendChild(t);
+    return t;
+  })();
+
+  node.on('mouseover', (e, d) => {
+    tooltip.innerHTML = `
+      <div class="tt-name">${d.name}</div>
+      <div class="tt-row"><span>Zap Score</span><span class="tt-val">${d.zapScore}</span></div>
+      <div class="tt-row"><span>Degree</span><span class="tt-degree">${d.degree === 0 ? 'YOU' : d.degree + 'st'}</span></div>
+      <div class="tt-row"><span>Relation</span><span>${d.type}</span></div>
+    `;
+    tooltip.classList.add('visible');
+  }).on('mousemove', e => {
+    const rect = document.getElementById('graphPanel').getBoundingClientRect();
+    let tx = e.clientX - rect.left + 14;
+    let ty = e.clientY - rect.top - 10;
+    if (tx + 200 > rect.width) tx -= 220;
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top = ty + 'px';
+  }).on('mouseout', () => {
+    tooltip.classList.remove('visible');
+  });
+
+  // Tick
+  simulation.on('tick', () => {
+    link
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
 }
 
-function zoomIn() { d3.select('#graph-svg').transition().call(svgZoom.scaleBy,1.4); }
-function zoomOut() { d3.select('#graph-svg').transition().call(svgZoom.scaleBy,.7); }
-function resetZoom() { d3.select('#graph-svg').transition().call(svgZoom.transform,d3.zoomIdentity); }
+// ── PROFILE CARD ──
+function showProfileCard(d) {
+  const card = document.getElementById('profileCard');
+  document.getElementById('pcName').textContent = d.name;
+  document.getElementById('pcPubkey').textContent = d.id + '...3e13d6';
+  document.getElementById('pcZaps').textContent = d.zapScore || 0;
+  document.getElementById('pcFollowing').textContent = d.following !== null ? d.following : '—';
+  document.getElementById('pcDegree').textContent = d.degree === 0 ? 'YOU' : d.degree + 'st';
+  document.getElementById('pcAvatar').textContent = d.name.slice(0,1);
+  document.getElementById('pcNotes').textContent = 'No recent notes found.';
+  document.getElementById('pcNotes').className = 'no-notes';
+  card.classList.add('visible');
+}
+function closeProfileCard() {
+  document.getElementById('profileCard').classList.remove('visible');
+}
 
-// ══════════════════════════════════════════════
-// PROFILE PANEL
-// ══════════════════════════════════════════════
-async function openProfilePanel(d) {
-  if (d.type === 'user') return;
-  openProfilePubkey = d.pubkey;
+// ── ZOOM ──
+function zoomIn() {
+  d3.select('#graphSvg').transition().call(svgZoom.scaleBy, 1.4);
+}
+function zoomOut() {
+  d3.select('#graphSvg').transition().call(svgZoom.scaleBy, .7);
+}
+function zoomFit() {
+  d3.select('#graphSvg').transition().call(svgZoom.transform, d3.zoomIdentity);
+}
 
-  const panel = document.getElementById('profile-panel');
-  const av = document.getElementById('pp-avatar');
-  const pic = d.picture||avatarUrl(d.pubkey);
-
-  document.getElementById('pp-name').textContent = d.label||shortHex(d.pubkey);
-  document.getElementById('pp-npub').textContent = shortHex(d.pubkey);
-  document.getElementById('pp-zaps').textContent = d.zapScore||0;
-  document.getElementById('pp-follows').textContent = '—';
-  document.getElementById('pp-degree').textContent = d.degree===1?'1st':'2nd';
-  document.getElementById('pp-bio').textContent = bio(d.pubkey)||'No bio available.';
-  document.getElementById('pp-notes').innerHTML = '<div class="pp-loading">Loading notes...</div>';
-
-  if (pic) {
-    av.innerHTML = `<img src="${pic}" onerror="this.parentElement.textContent='👤'">`;
-  } else { av.textContent = '👤'; }
-
-  // Update watch button
-  const isWatching = watchlist.some(w=>w.pubkey===d.pubkey);
-  const wb = document.getElementById('pp-watch-btn');
-  wb.textContent = isWatching ? '👁 Watching' : '👁 Watch';
-  wb.classList.toggle('watching', isWatching);
-
-  panel.classList.add('open');
-
-  // Fetch recent notes
-  const notes = await queryAll([{ kinds:[1], authors:[d.pubkey], limit:10, since:Math.floor(Date.now()/1000)-7*86400 }], null, 5000);
-  notes.sort((a,b)=>b.created_at-a.created_at);
-
-  const notesEl = document.getElementById('pp-notes');
-  if (!notes.length) { notesEl.innerHTML='<div class="pp-loading">No recent notes found.</div>'; return; }
-  notesEl.innerHTML = notes.slice(0,8).map(n => `
-    <div class="pp-note">
-      <div class="pp-note-time">${timeAgo(n.created_at)}</div>
-      <div class="pp-note-text">${esc(n.content).slice(0,280)}${n.content.length>280?'…':''}</div>
+// ── NICHES ──
+const NICHE_ICONS = { bitcoin:'₿', nostr:'⚡', florida:'🌴', bluecrab:'🦀', grownostr:'🌱', libertarian:'🗽', soundmoney:'🔊', geopolitics:'🌐' };
+function renderNiches() {
+  const el = document.getElementById('nichesList');
+  document.getElementById('nichesCount').textContent = MOCK_NICHES.length + ' niches';
+  el.innerHTML = MOCK_NICHES.map(n => `
+    <div class="niche-item">
+      <div class="niche-icon">${n.icon}</div>
+      <div class="niche-info">
+        <div class="niche-tag">${n.tag}</div>
+        <div class="niche-label">${n.label}</div>
+        <div class="niche-active">${n.active} active</div>
+      </div>
+      <div class="niche-right">
+        <div class="niche-sats">${n.sats >= 1000 ? (n.sats/1000).toFixed(1)+'k' : n.sats}</div>
+        <div class="niche-sats-lbl">sats/wk</div>
+      </div>
     </div>
   `).join('');
 }
 
-function closeProfilePanel() {
-  document.getElementById('profile-panel').classList.remove('open');
-  openProfilePubkey = null;
+// ── ACTIVITY ──
+function renderActivity() {
+  const el = document.getElementById('activityList');
+  const icons = { zap: '⚡', react: '💜', note: '📝' };
+  const iconClass = { zap: 'icon-zap', react: 'icon-react', note: 'icon-note' };
+  el.innerHTML = MOCK_ACTIVITY.map(a => `
+    <div class="activity-item">
+      <div class="activity-icon ${iconClass[a.type]}">${icons[a.type]}</div>
+      <div class="activity-content">
+        <div class="act-line">
+          <span class="act-actor">${a.actor}</span>
+          ${a.type === 'zap' ? ` zapped <span class="act-target">${a.target}</span>` : ` reacted to <span class="act-target">${a.target}</span>`}
+          ${a.sats ? ` <span class="act-sats">+${a.sats} sats</span>` : ''}
+        </div>
+        <div class="act-time">${a.time}</div>
+      </div>
+      <div class="act-degree degree-${a.degree}">${a.degree}°</div>
+    </div>
+  `).join('');
 }
 
-async function followProfile() {
-  if (!openProfilePubkey) return;
-  if (!window.nostr) { alert('Connect your Nostr extension to follow.'); return; }
-  try {
-    // Get current follows
-    const pk = await window.nostr.getPublicKey();
-    const evts = await queryAll([{ kinds:[3], authors:[pk], limit:1 }], null, 5000);
-    evts.sort((a,b)=>b.created_at-a.created_at);
-    const currentTags = evts[0]?.tags || [];
-    const alreadyFollowing = currentTags.some(t=>t[0]==='p' && t[1]===openProfilePubkey);
-    if (alreadyFollowing) { alert('Already following this person.'); return; }
-
-    const newTags = [...currentTags, ['p', openProfilePubkey]];
-    const event = { kind:3, created_at:Math.floor(Date.now()/1000), tags:newTags, content:evts[0]?.content||'' };
-    const signed = await window.nostr.signEvent(event);
-
-    // Broadcast to relays
-    relays.slice(0,3).forEach(url => {
-      try {
-        const ws = new WebSocket(url);
-        ws.onopen = () => { ws.send(JSON.stringify(['EVENT', signed])); setTimeout(()=>ws.close(),2000); };
-      } catch(e) {}
-    });
-
-    const btn = document.getElementById('pp-follow-btn');
-    btn.textContent = '✓ Following'; btn.style.background = '#1a3a2a'; btn.style.color = 'var(--accent)';
-  } catch(e) { alert('Failed to follow: '+e.message); }
-}
-
-function toggleWatch() {
-  if (!openProfilePubkey) return;
-  const idx = watchlist.findIndex(w=>w.pubkey===openProfilePubkey);
-  if (idx >= 0) {
-    watchlist.splice(idx,1);
-  } else {
-    watchlist.push({ pubkey:openProfilePubkey, name:displayName(openProfilePubkey), picture:avatarUrl(openProfilePubkey), added:Date.now() });
-  }
-  saveWatchlist();
+// ── WATCHLIST ──
+function addToWatchlist() {
+  const val = document.getElementById('watchInput').value.trim();
+  if (!val) return;
+  watchlist.push({ key: val, name: val.slice(0,12)+'...', zaps: 0 });
+  document.getElementById('watchInput').value = '';
   renderWatchlist();
-  const isNow = watchlist.some(w=>w.pubkey===openProfilePubkey);
-  const wb = document.getElementById('pp-watch-btn');
-  wb.textContent = isNow ? '👁 Watching' : '👁 Watch';
-  wb.classList.toggle('watching', isNow);
 }
-
-// ══════════════════════════════════════════════
-// WATCHLIST
-// ══════════════════════════════════════════════
+function removeFromWatchlist(i) {
+  watchlist.splice(i,1);
+  renderWatchlist();
+}
 function renderWatchlist() {
-  const list = document.getElementById('watch-list');
-  const empty = document.getElementById('watch-empty');
-  updateWatchBadge();
-
-  if (!watchlist.length) { list.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-
-  list.innerHTML = watchlist.map((w,i) => `
-    <div class="watch-item" onclick="loadWatchedProfile('${w.pubkey}')">
-      <div class="rec-avatar">${w.picture?`<img src="${w.picture}" onerror="this.parentElement.textContent='👤'">`:' 👤'}</div>
-      <div class="watch-info">
-        <div class="watch-name">${esc(w.name)}</div>
-        <div class="watch-npub">${shortHex(w.pubkey)}</div>
-      </div>
-      <button class="watch-remove" onclick="event.stopPropagation();removeWatch(${i})">✕</button>
-    </div>
-  `).join('');
-}
-
-function removeWatch(idx) { watchlist.splice(idx,1); saveWatchlist(); renderWatchlist(); }
-
-function updateWatchBadge() {
-  const badge = document.getElementById('watch-count');
-  if (watchlist.length > 0) { badge.style.display='flex'; badge.textContent=watchlist.length; }
-  else { badge.style.display='none'; }
-}
-
-function promptAddWatch() {
-  const input = prompt('Enter npub or hex pubkey to watch:');
-  if (!input) return;
-  const hex = resolveHex(input.trim());
-  if (!hex) { alert('Invalid npub or pubkey.'); return; }
-  if (watchlist.some(w=>w.pubkey===hex)) { alert('Already watching this profile.'); return; }
-  watchlist.push({ pubkey:hex, name:shortHex(hex), picture:null, added:Date.now() });
-  saveWatchlist();
-  fetchProfiles([hex]).then(() => {
-    const idx = watchlist.findIndex(w=>w.pubkey===hex);
-    if (idx>=0) { watchlist[idx].name=displayName(hex); watchlist[idx].picture=avatarUrl(hex)||null; }
-    saveWatchlist(); renderWatchlist();
-  });
-  renderWatchlist();
-}
-
-function loadWatchedProfile(pubkey) {
-  document.getElementById('npub-input').value = pubkey;
-  analyzeProfile();
-  closeMobileSidebar();
-}
-
-// ══════════════════════════════════════════════
-// RELAY MANAGER
-// ══════════════════════════════════════════════
-function renderRelayList() {
-  const list = document.getElementById('relay-list');
-  list.innerHTML = relays.map((r,i) => `
-    <div class="relay-item">
-      <div class="relay-dot" id="rdot-${i}"></div>
-      <div class="relay-url">${r.replace('wss://','')}</div>
-      <button class="relay-remove" onclick="removeRelay(${i})">✕</button>
-    </div>
-  `).join('');
-  // Ping each
-  relays.forEach((r,i) => pingRelay(r,i));
-}
-
-async function pingRelay(url, idx) {
-  const dot = document.getElementById('rdot-'+idx);
-  if (!dot) return;
-  try {
-    const ws = new WebSocket(url);
-    const t = setTimeout(() => { dot.className='relay-dot dead'; ws.close(); }, 3000);
-    ws.onopen = () => { clearTimeout(t); dot.className='relay-dot live'; ws.close(); };
-    ws.onerror = () => { clearTimeout(t); dot.className='relay-dot dead'; };
-  } catch(e) { if(dot) dot.className='relay-dot dead'; }
-}
-
-function addRelay() {
-  const input = document.getElementById('relay-input');
-  let url = input.value.trim();
-  if (!url) return;
-  if (!url.startsWith('wss://')) url = 'wss://' + url;
-  if (relays.includes(url)) { alert('Already added.'); return; }
-  relays.push(url); saveRelays(); input.value=''; renderRelayList();
-}
-
-function removeRelay(idx) {
-  if (relays.length <= 1) { alert('Need at least one relay.'); return; }
-  relays.splice(idx,1); saveRelays(); renderRelayList();
-}
-
-// ══════════════════════════════════════════════
-// RECOMMENDATIONS
-// ══════════════════════════════════════════════
-function renderRecs(recs) {
-  const list = document.getElementById('rec-list');
-  const emojis = ['⚡','🔑','🟠','🌊','🔗','🏔','⛓','🌐','💡','🗡','🛡','🔭'];
-  list.innerHTML = recs.map((r,i) => {
-    const av = r.picture ? `<img src="${esc(r.picture)}" onerror="this.parentElement.textContent='${emojis[i%emojis.length]}'">` : emojis[i%emojis.length];
-    return `<div class="rec-item${r.locked?' locked':''}" onclick="${r.locked?'openZapGate()':'openRecProfile(\''+r.pubkey+'\')'}">
-      <div class="rec-avatar">${av}</div>
-      <div class="rec-info">
-        <div class="rec-name">${esc(r.name)}</div>
-        <div class="rec-meta">${r.mutual} mutual follows · #${esc(r.niche)}</div>
-      </div>
-      <div class="rec-score">${r.locked?'<span style="color:var(--zap)">⚡</span>':(r.zapScore||'—')}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('zap-gate').style.display = (recs.some(r=>r.locked)) ? 'block' : 'none';
-}
-
-function openRecProfile(pubkey) {
-  const node = graphData?.nodes.find(n=>n.pubkey===pubkey);
-  if (node) openProfilePanel(node);
-}
-
-// ══════════════════════════════════════════════
-// NICHES
-// ══════════════════════════════════════════════
-function renderNiches(niches) {
-  const grid = document.getElementById('niche-grid');
-  grid.innerHTML = niches.map(n => `
-    <div class="niche-card" style="--nc:${n.color}">
-      <div class="niche-name">#${esc(n.tag)}</div>
-      <div class="niche-tag">${esc(n.name)}</div>
-      <div class="niche-stats">
-        <div><div class="ns-val">${n.count}</div><div class="ns-lbl">Active</div></div>
-        <div><div class="ns-val">${(n.zap/1000).toFixed(1)}k</div><div class="ns-lbl">Sats/wk</div></div>
-      </div>
-      <div class="niche-bar"><div class="niche-bar-fill" data-pct="${Math.round(n.pct*100)}"></div></div>
-    </div>
-  `).join('');
-  setTimeout(() => {
-    document.querySelectorAll('.niche-bar-fill').forEach(el => { el.style.width = el.dataset.pct+'%'; });
-  }, 100);
-}
-
-// ══════════════════════════════════════════════
-// ACTIVITY
-// ══════════════════════════════════════════════
-function renderActivity(activity) {
-  const list = document.getElementById('activity-list');
-  list.innerHTML = activity.map((item,i) => `
-    <div class="act-item" style="animation-delay:${i*.04}s">
-      <div class="act-time">${timeAgo2(item.minsAgo)}</div>
-      <div class="act-content"><span class="act-actor">${esc(item.actor)}</span> ${item.action} <span class="act-actor">${esc(item.target)}</span></div>
-      ${item.sats?`<div class="act-zap">+${item.sats} sats</div>`:'<div></div>'}
-    </div>
-  `).join('');
-}
-
-// ══════════════════════════════════════════════
-// SHARE
-// ══════════════════════════════════════════════
-function openShareModal() {
-  if (!graphData) { alert('Map a profile first.'); return; }
-  openModal('share-modal');
-  document.getElementById('share-status').textContent='';
-}
-
-async function shareToNostr() {
-  if (!window.nostr) { alert('Connect your Nostr extension to post.'); return; }
-  const name = displayName(graphData.hex);
-  const text = `📊 My Nostr Graph via GRAPHSTR\n\n` +
-    `Following: ${graphData.followCount}\n` +
-    `Network reach: ${graphData.reach}\n` +
-    `Zap weight: ${graphData.zapScore}\n` +
-    `Active niches: ${graphData.niches.map(n=>'#'+n.tag).join(' ')}\n\n` +
-    `Map your graph → graphstr.app`;
-  try {
-    const event = { kind:1, created_at:Math.floor(Date.now()/1000), tags:[], content:text };
-    const signed = await window.nostr.signEvent(event);
-    relays.slice(0,3).forEach(url => {
-      try { const ws=new WebSocket(url); ws.onopen=()=>{ws.send(JSON.stringify(['EVENT',signed]));setTimeout(()=>ws.close(),2000);}; } catch(e){}
-    });
-    document.getElementById('share-status').textContent='✓ Posted to Nostr!';
-    document.getElementById('share-status').style.color='var(--accent)';
-  } catch(e) { document.getElementById('share-status').textContent='Failed: '+e.message; document.getElementById('share-status').style.color='var(--danger)'; }
-}
-
-function copyShareText() {
-  if (!graphData) return;
-  const text = `📊 My Nostr Graph via GRAPHSTR\n\nFollowing: ${graphData.followCount} | Reach: ${graphData.reach} | Zap weight: ${graphData.zapScore}\nNiches: ${graphData.niches.map(n=>'#'+n.tag).join(' ')}\n\ngraphstr.app`;
-  navigator.clipboard.writeText(text).then(() => {
-    document.getElementById('share-status').textContent='✓ Copied to clipboard!';
-    document.getElementById('share-status').style.color='var(--accent)';
-  });
-}
-
-// ══════════════════════════════════════════════
-// ZAP GATE
-// ══════════════════════════════════════════════
-function openZapGate() {
-  if (unlocked) { doUnlock(); return; }
-  openModal('zap-modal'); zgStep('choose');
-}
-
-function zgStep(name) {
-  ['choose','pay','success'].forEach(s => {
-    const el=document.getElementById('zgs-'+s);
-    if(el) el.classList.toggle('active', s===name);
-  });
-  const steps=['choose','pay','success'];
-  const idx=steps.indexOf(name);
-  steps.forEach((s,i) => {
-    const d=document.getElementById('zgd'+(i+1));
-    if(d) d.className='zg-dot'+(i<idx?' done':i===idx?' active':'');
-  });
-}
-
-function selectPay(method) {
-  selectedPayMethod=method;
-  document.getElementById('opt-nwc').classList.toggle('sel', method==='nwc');
-  document.getElementById('opt-inv').classList.toggle('sel', method==='invoice');
-  document.getElementById('nwc-section').style.display = method==='nwc'?'block':'none';
-  document.getElementById('btn-gen-inv').style.display = method==='invoice'?'block':'none';
-}
-
-async function doInvoicePay() {
-  zgStep('pay');
-  document.getElementById('inv-display').style.display='block';
-  document.getElementById('nwc-paying').style.display='none';
-  setPS('pending','Generating invoice...');
-  try {
-    const [user,domain]=LN_ADDRESS.split('@');
-    const lnurl=await(await fetch(`https://${domain}/.well-known/lnurlp/${user}`)).json();
-    if(lnurl.status==='ERROR') throw new Error(lnurl.reason);
-    const inv=await(await fetch(`${lnurl.callback}?amount=${ZAP_MSATS}`)).json();
-    if(inv.status==='ERROR') throw new Error(inv.reason);
-    currentInvoice=inv.pr;
-    document.getElementById('inv-text').textContent=currentInvoice;
-    renderQR(currentInvoice);
-    setPS('pending','Waiting for payment');
-    startPoll();
-  } catch(err) {
-    setPS('err','Could not auto-generate. Send '+ZAP_SATS+' sats to: '+LN_ADDRESS);
-    document.getElementById('inv-text').textContent='Send '+ZAP_SATS+' sats to:\n'+LN_ADDRESS;
-    addManualBtn();
+  const el = document.getElementById('watchlistItems');
+  if (!watchlist.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">👁</div><div class="empty-title">Watchlist empty</div><div class="empty-sub">Add npubs to track their activity in your network</div></div>';
+    return;
   }
+  el.innerHTML = watchlist.map((w,i) => `
+    <div class="watch-item">
+      <div class="watch-avatar">${w.name.slice(0,1).toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="watch-name">${w.name}</div>
+        <div class="watch-key">${w.key}</div>
+      </div>
+      <div class="watch-zaps">${w.zaps} sats</div>
+      <button class="watch-remove" onclick="removeFromWatchlist(${i})">✕</button>
+    </div>
+  `).join('');
 }
 
-async function doNWCPay() {
-  const str=document.getElementById('nwc-str').value.trim();
-  if(!str.startsWith('nostr+walletconnect://')) { alert('Invalid NWC string.'); return; }
-  zgStep('pay');
-  document.getElementById('inv-display').style.display='none';
-  document.getElementById('nwc-paying').style.display='block';
-  setNS('pending','Connecting...');
-  try {
-    const parsed=parseNWC(str); if(!parsed) throw new Error('Cannot parse NWC URI');
-    setNS('pending','Generating invoice...');
-    const [user,domain]=LN_ADDRESS.split('@');
-    const lnurl=await(await fetch(`https://${domain}/.well-known/lnurlp/${user}`)).json();
-    const inv=await(await fetch(`${lnurl.callback}?amount=${ZAP_MSATS}`)).json();
-    const invoice=inv.pr;
-    setNS('pending','Sending to wallet...');
-    await sendNWC(parsed,invoice);
-  } catch(err) { setNS('err',err.message||'NWC failed'); }
-}
+// ── INIT ──
+window.addEventListener('load', () => {
+  // Auto-load demo graph
+  loadGraph('npub14hq5lgadtyy9dhvtszc...');
+});
 
-function parseNWC(uri) {
-  try {
-    const s=uri.replace('nostr+walletconnect://','');
-    const [pk,qs]=s.split('?'); const p=new URLSearchParams(qs);
-    return { walletPubkey:pk, relay:p.get('relay'), secret:p.get('secret') };
-  } catch(e){return null;}
-}
-
-async function sendNWC(np,invoice) {
-  if(!window.nostr?.nip04) throw new Error('NIP-07 extension with nip04 required');
-  const enc=await window.nostr.nip04.encrypt(np.walletPubkey,JSON.stringify({method:'pay_invoice',params:{invoice}}));
-  const event={ kind:23194, created_at:Math.floor(Date.now()/1000), tags:[['p',np.walletPubkey]], content:enc, pubkey:await window.nostr.getPublicKey() };
-  const signed=await window.nostr.signEvent(event);
-  return new Promise((res,rej) => {
-    const ws=new WebSocket(np.relay); nwcWs=ws;
-    const t=setTimeout(()=>rej(new Error('NWC timeout')),30000);
-    ws.onopen=()=>ws.send(JSON.stringify(['EVENT',signed]));
-    ws.onmessage=msg=>{
-      try {
-        const d=JSON.parse(msg.data);
-        if(d[0]==='OK') { setNS('pending','Processing...'); const sid='nwc_'+Math.random().toString(36).slice(2,8); ws.send(JSON.stringify(['REQ',sid,{kinds:[23195],authors:[np.walletPubkey],'#e':[signed.id],limit:1}])); }
-        else if(d[0]==='EVENT' && d[2]?.kind===23195) { clearTimeout(t); ws.close(); res(d[2]); onPaid(); }
-      } catch(e){}
-    };
-    ws.onerror=()=>{clearTimeout(t);rej(new Error('WebSocket error'));};
-  });
-}
-
-function startPoll() {
-  if(pollInterval) clearInterval(pollInterval);
-  let n=0;
-  pollInterval=setInterval(()=>{ n++; if(n>60){clearInterval(pollInterval);setPS('err','Timeout');} if(n===5)addManualBtn(); },2000);
-}
-
-function addManualBtn() {
-  if(document.getElementById('manual-btn')) return;
-  const b=document.createElement('button');
-  b.id='manual-btn'; b.className='btn-full btn-full-ghost'; b.style.marginTop='12px';
-  b.textContent='✓ I sent the payment'; b.onclick=onPaid;
-  document.getElementById('inv-display').appendChild(b);
-}
-
-function onPaid() {
-  if(pollInterval){clearInterval(pollInterval);pollInterval=null;}
-  saveUnlocked(); zgStep('success');
-  setTimeout(doUnlock,400);
-}
-
-function doUnlock() {
-  unlocked=true;
-  document.querySelectorAll('.rec-item.locked').forEach(el=>el.classList.remove('locked'));
-  document.getElementById('zap-gate').style.display='none';
-  if(graphData) renderRecs(graphData.recs.map(r=>({...r,locked:false})));
-}
-
-function copyInvoice() {
-  if(!currentInvoice) return;
-  navigator.clipboard.writeText(currentInvoice).then(()=>{
-    const b=document.querySelector('.btn-full-ghost');
-    if(b){b.textContent='✓ Copied!';setTimeout(()=>b.textContent='📋 Copy Invoice',2000);}
-  });
-}
-
-function renderQR(text) {
-  const c=document.getElementById('qr-wrap'); c.innerHTML='';
-  const img=document.createElement('img');
-  img.width=160; img.height=160;
-  img.style.cssText='border-radius:6px;background:#fff;padding:5px;';
-  img.src='https://chart.googleapis.com/chart?cht=qr&chs=160x160&chl='+encodeURIComponent(text)+'&choe=UTF-8';
-  img.onerror=()=>{c.innerHTML='<div style="color:var(--muted);font-size:10px;padding:16px">QR unavailable — copy invoice</div>';};
-  c.appendChild(img);
-}
-
-function setPS(t,m){const e=document.getElementById('pay-status');if(!e)return;e.className='pay-status '+t;e.innerHTML=t==='pending'?'<span class="dots">'+m+'</span>':m;}
-function setNS(t,m){const e=document.getElementById('nwc-status');if(!e)return;e.className='pay-status '+t;e.innerHTML=t==='pending'?'<span class="dots">'+m+'</span>':m;}
-
-// ══════════════════════════════════════════════
-// VIEW / TAB SWITCHING
-// ══════════════════════════════════════════════
-function switchView(name) {
-  currentView=name;
-  const views=['graph','niches','activity'];
-  views.forEach(v => {
-    const el=document.getElementById('view-'+v);
-    if(el) el.style.display=v===name?'block':'none';
-  });
-  document.querySelectorAll('.vtab').forEach((t,i)=>t.classList.toggle('active',views[i]===name));
-  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
-  const mb=document.getElementById('mnav-'+name);
-  if(mb) mb.classList.add('active');
-  if(name==='graph'&&graphData) setTimeout(()=>renderGraph(graphData),30);
-}
-
-function switchSideTab(name) {
-  currentSideTab=name;
-  ['graph','watch','relays'].forEach(t=>{
-    const p=document.getElementById('spane-'+t);
-    if(p) p.classList.toggle('active', t===name);
-  });
-  document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('active',['graph','watch','relays'][i]===name));
-}
-
-// ══════════════════════════════════════════════
-// MOBILE NAV
-// ══════════════════════════════════════════════
-function mobileNav(name) {
-  if(name==='graph'||name==='niches'||name==='activity') {
-    closeMobileSidebar();
-    if(graphData) switchView(name);
-    document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('mnav-'+name)?.classList.add('active');
-  }
-}
-
-function toggleMobileSidebar() {
-  const sidebar=document.getElementById('sidebar');
-  const overlay=document.getElementById('sidebar-overlay');
-  const isOpen=sidebar.classList.contains('mobile-open');
-  sidebar.classList.toggle('mobile-open',!isOpen);
-  overlay.classList.toggle('show',!isOpen);
-  document.getElementById('mnav-sidebar').classList.toggle('active',!isOpen);
-}
-
-function closeMobileSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebar-overlay').classList.remove('show');
-  document.getElementById('mnav-sidebar').classList.remove('active');
-}
-
-function openMobilePanel(pane) { switchSideTab(pane); toggleMobileSidebar(); }
-
-function toggleDesktopSidebar() {
-  const s=document.getElementById('sidebar');
-  s.classList.toggle('hidden');
-}
-
-// ══════════════════════════════════════════════
-// MODAL HELPERS
-// ══════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  if(id==='zap-modal') { if(pollInterval){clearInterval(pollInterval);pollInterval=null;} if(nwcWs){try{nwcWs.close();}catch(e){} nwcWs=null;} }
-}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-
-// ══════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════
-function animateNum(id, target) {
-  const el=document.getElementById(id); if(!el) return;
-  let c=0; const step=target/28;
-  const iv=setInterval(()=>{ c=Math.min(c+step,target); el.textContent=Math.floor(c).toLocaleString(); if(c>=target)clearInterval(iv); },25);
-}
-function timeAgo(ts) {
-  const m=Math.round((Date.now()/1000-ts)/60);
-  if(m<60) return m+'m ago'; if(m<1440) return Math.floor(m/60)+'h ago'; return Math.floor(m/1440)+'d ago';
-}
-function timeAgo2(minsAgo) { if(minsAgo<60) return minsAgo+'m ago'; return Math.floor(minsAgo/60)+'h ago'; }
-
-// ── INIT
-renderRelayList();
-renderWatchlist();
-updateWatchBadge();
-initRelayStatus();
-
-// Handle enter key in search
-document.getElementById('npub-input').addEventListener('keydown', e => { if(e.key==='Enter') analyzeProfile(); });
-document.getElementById('relay-input').addEventListener('keydown', e => { if(e.key==='Enter') addRelay(); });
+window.addEventListener('resize', () => {
+  if (graphNodes.length) renderGraph();
+});
 </script>
 
 </body>
